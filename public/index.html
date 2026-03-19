@@ -95,12 +95,61 @@
       margin-top:4px;
     }
 
-    .section{
+    .section {
       background: rgba(255,255,255,0.02);
       border:1px solid var(--line);
       border-radius:18px;
-      padding:14px;
+      padding: 0;
       margin-top:14px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+      gap: 8px;
+    }
+
+    .section-header:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .section-title {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .section-chevron {
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .section.collapsed .section-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .section-body {
+      padding: 0 14px 14px;
+      overflow: hidden;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+      max-height: 600px;
+      opacity: 1;
+    }
+
+    .section.collapsed .section-body {
+      max-height: 0;
+      opacity: 0;
+      padding-bottom: 0;
     }
 
     label {
@@ -436,6 +485,70 @@
     .image-layer img.dragging {
       cursor: grabbing;
     }
+
+    /* Black fade overlay that appears in last 10s */
+    .stage-fade {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+      transition: opacity 0.8s ease;
+    }
+
+    /* Session end overlay with replay button */
+    .session-end-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .session-end-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .session-end-label {
+      color: rgba(255,255,255,0.35);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .replay-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      border: 2px solid rgba(244,200,74,0.5);
+      background: rgba(244,200,74,0.08);
+      color: var(--yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      padding: 0;
+    }
+
+    .replay-btn:hover {
+      background: rgba(244,200,74,0.18);
+      border-color: var(--yellow);
+      transform: scale(1.08);
+    }
+
+    .replay-btn:active { transform: scale(0.95); }
+    .replay-btn svg { width: 30px; height: 30px; display: block; }
 
     .placeholder {
       position: absolute;
@@ -807,69 +920,179 @@
     </div>
 
     <div class="section">
-      <label>Paste Pinterest board URL</label>
-      <input id="boardUrl" type="text" placeholder="https://co.pinterest.com/..." />
-
-      <div class="btn-grid">
-        <div>
-          <label>Minutes</label>
-          <input id="minutes" type="number" min="0" value="1" />
-        </div>
-        <div>
-          <label>Seconds</label>
-          <input id="seconds" type="number" min="0" max="59" value="0" />
-        </div>
+      <div class="section-header" onclick="this.closest('.section').classList.toggle('collapsed')">
+        <span class="section-title">Settings</span>
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
+      <div class="section-body">
+        <label>Paste Pinterest board URL</label>
+        <input id="boardUrl" type="text" placeholder="https://co.pinterest.com/..." />
 
-      <label>Order</label>
-      <select id="mode">
-        <option value="random">Random</option>
-        <option value="sequential">Sequential</option>
-      </select>
+        <div class="btn-grid">
+          <div>
+            <label>Minutes</label>
+            <input id="minutes" type="number" min="0" value="1" />
+          </div>
+          <div>
+            <label>Seconds</label>
+            <input id="seconds" type="number" min="0" max="59" value="0" />
+          </div>
+        </div>
 
-      <div style="margin-top:10px;">
-        <button id="loadBtn" class="primary" style="width:100%">Load board</button>
+        <label>Order</label>
+        <select id="mode">
+          <option value="random">Random</option>
+          <option value="sequential">Sequential</option>
+        </select>
+
+        <div class="btn-grid">
+          <div>
+            <label>Amount</label>
+            <input id="sessionLimit" type="number" min="0" value="0" placeholder="∞" title="How many images to show (0 = unlimited)" />
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <div style="font-size:11px;color:var(--muted);padding-bottom:13px;line-height:1.4;">images, then<br>session ends</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <button id="loadBtn" class="primary" style="width:100%">Load board</button>
+        </div>
       </div>
     </div>
 
     <div class="section">
-      <div class="btn-grid">
-        <button id="prevBtn" class="ghost">Previous</button>
-        <button id="nextBtn" class="ghost">Next</button>
+      <div class="section-header" onclick="this.closest('.section').classList.toggle('collapsed')">
+        <span class="section-title">Controls</span>
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
+      <div class="section-body">
+        <div class="btn-grid">
+          <button id="prevBtn" class="ghost">Previous</button>
+          <button id="nextBtn" class="ghost">Next</button>
+        </div>
 
-      <div class="zoom-row">
-        <button id="zoomOutBtn" class="ghost">-</button>
-        <button id="zoomResetBtn" class="ghost">Reset</button>
-        <button id="zoomInBtn" class="ghost">+</button>
-        <button id="fitBtn" class="ghost">Fit</button>
-      </div>
+        <div class="zoom-row">
+          <button id="zoomOutBtn" class="ghost">-</button>
+          <button id="zoomResetBtn" class="ghost">Reset</button>
+          <button id="zoomInBtn" class="ghost">+</button>
+          <button id="fitBtn" class="ghost">Fit</button>
+        </div>
 
-      <div class="hint">
-        Wheel to zoom. Drag to pan. Keyboard:
-        <span class="kbd">←</span>
-        <span class="kbd">→</span>
-        to switch,
-        <span class="kbd">G</span>
-        grid,
-        <span class="kbd">Esc</span>
-        close,
-        <span class="kbd">Space</span>
-        pause/start.
+        <div class="hint">
+          Wheel to zoom. Drag to pan. Keyboard:
+          <span class="kbd">←</span>
+          <span class="kbd">→</span>
+          to switch,
+          <span class="kbd">G</span>
+          grid,
+          <span class="kbd">Esc</span>
+          close,
+          <span class="kbd">Space</span>
+          pause/start.
+        </div>
       </div>
     </div>
 
     <div class="section progress-wrap">
-      <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
+      <div class="section-header" onclick="this.closest('.section').classList.toggle('collapsed')">
+        <span class="section-title">Progress</span>
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div id="progressText" class="progress-text">Idle</div>
-      <div class="status" id="status">Paste a Pinterest board link, then click Load board.</div>
+      <div class="section-body">
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div id="progressText" class="progress-text">Idle</div>
+        <div class="status" id="status">Paste a Pinterest board link, then click Load board.</div>
+      </div>
     </div>
 
-    <div class="section">
-      <label>Debug logs</label>
-      <div id="logPanel" class="log-panel">Waiting for logs…</div>
+    <div class="section collapsed">
+      <div class="section-header" onclick="this.closest('.section').classList.toggle('collapsed')">
+        <span class="section-title">Debug logs</span>
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="section-body">
+        <div id="logPanel" class="log-panel">Waiting for logs…</div>
+      </div>
+    </div>
+
+    <div class="section collapsed" id="musicSection">
+      <div class="section-header" onclick="this.closest('.section').classList.toggle('collapsed')">
+        <span class="section-title">🎵 Music Player</span>
+        <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="section-body">
+        <!-- URL input -->
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <input id="ytUrl" type="text" placeholder="YouTube URL..." style="flex:1;font-size:12px;padding:8px 10px;" />
+          <button id="ytLoadBtn" class="ghost" style="width:auto;padding:8px 12px;font-size:12px;white-space:nowrap;">Load</button>
+        </div>
+
+        <!-- Hidden YT iframe -->
+        <div id="ytPlayerWrap" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;">
+          <div id="ytPlayer"></div>
+        </div>
+
+        <!-- Metadata -->
+        <div id="ytMeta" style="margin-top:10px;display:none;">
+          <div id="ytThumbWrap" style="width:100%;border-radius:10px;overflow:hidden;margin-bottom:8px;aspect-ratio:16/9;background:#000;">
+            <img id="ytThumb" style="width:100%;height:100%;object-fit:cover;display:block;" src="" alt="" />
+          </div>
+          <div id="ytTitle" style="font-size:12px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:4px;"></div>
+          <div id="ytDuration" style="font-size:11px;color:var(--muted);"></div>
+        </div>
+
+        <!-- Progress bar -->
+        <div id="ytProgressWrap" style="margin-top:10px;display:none;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">
+            <span id="ytCurrent">0:00</span>
+            <span id="ytTotal">0:00</span>
+          </div>
+          <div id="ytProgressBar" style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:999px;cursor:pointer;position:relative;">
+            <div id="ytProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--yellow),var(--yellow-2));border-radius:999px;pointer-events:none;"></div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div id="ytControls" style="display:none;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;">
+          <button id="ytPrevBtn" class="hud-btn" title="Restart" style="width:34px;height:34px;">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </button>
+          <button id="ytPlayBtn" class="hud-btn" title="Play/Pause" style="width:42px;height:42px;">
+            <svg id="ytPlayIcon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5,3 19,12 5,21"/></svg>
+          </button>
+          <button id="ytMuteBtn" class="hud-btn" title="Mute" style="width:34px;height:34px;">
+            <svg id="ytMuteIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Volume (foldable) -->
+        <div id="ytVolumeSection" style="display:none;margin-top:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;" onclick="
+            const v=document.getElementById('ytVolumeBody');
+            const c=document.getElementById('ytVolumeChevron');
+            v.style.display=v.style.display==='none'?'block':'none';
+            c.style.transform=v.style.display==='none'?'rotate(-90deg)':'rotate(0deg)';
+          ">
+            <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Volume</span>
+            <svg id="ytVolumeChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--muted);transition:transform 0.2s;"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div id="ytVolumeBody" style="padding-top:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="color:var(--muted);flex-shrink:0;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg>
+              <input id="ytVolumeSlider" type="range" min="0" max="100" value="80" style="flex:1;height:4px;accent-color:var(--yellow);cursor:pointer;background:transparent;padding:0;border:none;" />
+              <span id="ytVolumeLabel" style="font-size:11px;color:var(--muted);min-width:26px;text-align:right;">80%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -916,6 +1139,16 @@
       </div>
 
       <div class="stage" id="stage">
+        <div id="stageFade" class="stage-fade"></div>
+        <div id="sessionEndOverlay" class="session-end-overlay">
+          <div class="session-end-label">Session complete</div>
+          <button class="replay-btn" id="replayBtn" title="Replay session">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+          </button>
+        </div>
         <div id="placeholder" class="placeholder" hidden>
           <div class="spinner-wrap">
             <svg class="spinner-ring" viewBox="0 0 44 44">
@@ -1041,6 +1274,7 @@
     let lastNavTime = 0;
     let isGridOpen = false;
     const NAV_COOLDOWN = 200;
+    let sessionShown = 0; // counts images shown in current session
 
     const transformState = {
       scale: 1,
@@ -1182,6 +1416,18 @@
       if (timerBarFillEl) timerBarFillEl.style.width = `${ratio * 100}%`;
       timerRingProgressEl.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - ratio)}`;
       timerRingCenterEl.textContent = `${Math.round(ratio * 100)}%`;
+
+      // Fade to black in last 10s — only if total duration > 15s
+      const fadeFn = document.getElementById("stageFade");
+      if (fadeFn) {
+        if (running && duration > 15000 && ms <= 10000) {
+          // Fade from 0 → 1 as ms goes 10000 → 0
+          const fadeRatio = 1 - (ms / 10000);
+          fadeFn.style.opacity = fadeRatio.toFixed(3);
+        } else {
+          fadeFn.style.opacity = 0;
+        }
+      }
     }
 
     function formatMs(ms) {
@@ -1424,6 +1670,52 @@
       countdownInterval = null;
     }
 
+    function getSessionLimit() {
+      const val = parseInt(document.getElementById("sessionLimit")?.value || "0", 10);
+      return isNaN(val) || val <= 0 ? 0 : val;
+    }
+
+    function endSession() {
+      clearTimers();
+      running = false;
+      paused = false;
+      remainingMs = getDurationMs();
+      sessionShown = 0;
+
+      // Fade image out first, then show overlay
+      const fadeFn = document.getElementById("stageFade");
+      const overlay = document.getElementById("sessionEndOverlay");
+      if (fadeFn) fadeFn.style.opacity = 1;
+
+      // Show replay overlay after fade completes
+      setTimeout(() => {
+        if (overlay) overlay.classList.add("visible");
+      }, 850);
+
+      statusEl.textContent = "Session complete.";
+      updateCountdown();
+    }
+
+    function replaySession() {
+      // Hide overlay and fade
+      const fadeFn = document.getElementById("stageFade");
+      const overlay = document.getElementById("sessionEndOverlay");
+      if (overlay) overlay.classList.remove("visible");
+      if (fadeFn) fadeFn.style.opacity = 0;
+
+      // Reset state — show first image, timer stays off
+      sessionShown = 0;
+      running = false;
+      paused = false;
+      remainingMs = getDurationMs();
+      isTransitioning = false;
+      pendingIndex = null;
+
+      if (images.length) setImageInstant(0);
+      updateCountdown();
+      statusEl.textContent = "Ready. Press Start to begin.";
+    }
+
     function scheduleAdvance(ms) {
       clearTimers();
       running = true;
@@ -1434,14 +1726,24 @@
       countdownInterval = setInterval(updateCountdown, 200);
 
       timerTimeout = setTimeout(() => {
+        const limit = getSessionLimit();
+
         if (images.length) {
           const next = getNextIndex();
           if (next >= 0) {
             isTransitioning = false;
             pendingIndex = null;
             showImage(next);
+            sessionShown++;
           }
         }
+
+        // Check if we've hit the limit
+        if (limit > 0 && sessionShown >= limit) {
+          endSession();
+          return;
+        }
+
         scheduleAdvance(getDurationMs());
       }, ms);
 
@@ -1475,6 +1777,7 @@
       imageToken += 1;
       placeholder.hidden = true;
       disabledIndices.clear();
+      sessionShown = 0;
 
       layers.forEach(({ layer, img }, idx) => {
         if (idx === 0) layer.classList.add("active");
@@ -1588,15 +1891,19 @@
         return;
       }
 
+      // Clear fade if restarting after session end
+      const fadeFn = document.getElementById("stageFade");
+      const overlay = document.getElementById("sessionEndOverlay");
+      if (fadeFn) fadeFn.style.opacity = 0;
+      if (overlay) overlay.classList.remove("visible");
+
       if (paused) {
         scheduleAdvance(remainingMs);
         return;
       }
 
-      if (currentIndex < 0) {
-        setImageInstant(0);
-      }
-
+      sessionShown = 0;
+      if (currentIndex < 0) setImageInstant(0);
       scheduleAdvance(getDurationMs());
     }
 
@@ -1614,6 +1921,8 @@
       running = false;
       paused = false;
       remainingMs = getDurationMs();
+      const fadeFn = document.getElementById("stageFade");
+      if (fadeFn) fadeFn.style.opacity = 0;
       updateCountdown();
     }
 
@@ -1669,6 +1978,7 @@
     startBtn.addEventListener("click", startSession);
     pauseBtn.addEventListener("click", pauseSession);
     stopBtn.addEventListener("click", stopSession);
+    document.getElementById("replayBtn")?.addEventListener("click", replaySession);
     stageNextBtn.addEventListener("click", handleStageNext);
     stagePrevBtn.addEventListener("click", handleStagePrev);
     zoomInBtn.addEventListener("click", () => zoomBy(0.2));
@@ -1735,6 +2045,161 @@
     setStageInteraction();
     setupKeyboard();
     updateLogs([]);
+
+    // ── YouTube Music Player ──────────────────────────────────────
+    let ytPlayer = null;
+    let ytReady = false;
+    let ytPlaying = false;
+    let ytProgressTimer = null;
+    let ytMuted = false;
+
+    function extractYtId(url) {
+      try {
+        const u = new URL(url);
+        if (u.hostname.includes("youtu.be")) return u.pathname.slice(1).split("?")[0];
+        return u.searchParams.get("v") || null;
+      } catch { return null; }
+    }
+
+    function formatYtTime(sec) {
+      sec = Math.floor(sec || 0);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function ytUpdateProgress() {
+      if (!ytPlayer || !ytReady) return;
+      try {
+        const cur = ytPlayer.getCurrentTime();
+        const dur = ytPlayer.getDuration();
+        document.getElementById("ytCurrent").textContent = formatYtTime(cur);
+        document.getElementById("ytTotal").textContent = formatYtTime(dur);
+        const pct = dur > 0 ? (cur / dur) * 100 : 0;
+        document.getElementById("ytProgressFill").style.width = pct + "%";
+      } catch (_) {}
+    }
+
+    function ytStartProgress() {
+      if (ytProgressTimer) clearInterval(ytProgressTimer);
+      ytProgressTimer = setInterval(ytUpdateProgress, 500);
+    }
+
+    function ytStopProgress() {
+      if (ytProgressTimer) clearInterval(ytProgressTimer);
+      ytProgressTimer = null;
+    }
+
+    function ytSetPlayIcon(playing) {
+      document.getElementById("ytPlayIcon").innerHTML = playing
+        ? '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>'
+        : '<polygon points="5,3 19,12 5,21"/>';
+      ytPlaying = playing;
+    }
+
+    function ytSetMuteIcon(muted) {
+      document.getElementById("ytMuteIcon").innerHTML = muted
+        ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'
+        : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+      ytMuted = muted;
+    }
+
+    function ytShowUI(videoId, title, duration) {
+      document.getElementById("ytThumb").src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+      document.getElementById("ytTitle").textContent = title || "Unknown title";
+      document.getElementById("ytDuration").textContent = duration ? "Duration: " + formatYtTime(duration) : "";
+      document.getElementById("ytMeta").style.display = "block";
+      document.getElementById("ytProgressWrap").style.display = "block";
+      document.getElementById("ytControls").style.display = "flex";
+      document.getElementById("ytVolumeSection").style.display = "block";
+    }
+
+    function ytLoadVideo(videoId) {
+      if (!videoId) return;
+
+      if (!ytReady) {
+        // API not loaded yet — load it
+        window.onYouTubeIframeAPIReady = () => {
+          ytReady = false; // will be set in onReady
+          ytPlayer = new YT.Player("ytPlayer", {
+            height: "1", width: "1",
+            videoId,
+            playerVars: { autoplay: 1, controls: 0 },
+            events: {
+              onReady: (e) => {
+                ytReady = true;
+                e.target.setVolume(parseInt(document.getElementById("ytVolumeSlider").value, 10));
+                const dur = e.target.getDuration();
+                const title = e.target.getVideoData().title;
+                ytShowUI(videoId, title, dur);
+                ytSetPlayIcon(true);
+                ytStartProgress();
+              },
+              onStateChange: (e) => {
+                if (e.data === YT.PlayerState.PLAYING) { ytSetPlayIcon(true); ytStartProgress(); }
+                else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) { ytSetPlayIcon(false); ytStopProgress(); ytUpdateProgress(); }
+              }
+            }
+          });
+        };
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+      } else if (ytPlayer) {
+        ytPlayer.loadVideoById(videoId);
+        setTimeout(() => {
+          const dur = ytPlayer.getDuration();
+          const title = ytPlayer.getVideoData().title;
+          ytShowUI(videoId, title, dur);
+          ytSetPlayIcon(true);
+          ytStartProgress();
+        }, 1500);
+      }
+    }
+
+    document.getElementById("ytLoadBtn").addEventListener("click", () => {
+      const url = document.getElementById("ytUrl").value.trim();
+      const id = extractYtId(url);
+      if (!id) { alert("Invalid YouTube URL"); return; }
+      ytLoadVideo(id);
+    });
+
+    document.getElementById("ytUrl").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("ytLoadBtn").click();
+    });
+
+    document.getElementById("ytPlayBtn").addEventListener("click", () => {
+      if (!ytPlayer || !ytReady) return;
+      if (ytPlaying) ytPlayer.pauseVideo();
+      else ytPlayer.playVideo();
+    });
+
+    document.getElementById("ytPrevBtn").addEventListener("click", () => {
+      if (!ytPlayer || !ytReady) return;
+      ytPlayer.seekTo(0); ytPlayer.playVideo();
+      ytSetPlayIcon(true); ytStartProgress();
+    });
+
+    document.getElementById("ytMuteBtn").addEventListener("click", () => {
+      if (!ytPlayer || !ytReady) return;
+      if (ytMuted) { ytPlayer.unMute(); ytSetMuteIcon(false); }
+      else { ytPlayer.mute(); ytSetMuteIcon(true); }
+    });
+
+    document.getElementById("ytProgressBar").addEventListener("click", (e) => {
+      if (!ytPlayer || !ytReady) return;
+      const bar = e.currentTarget.getBoundingClientRect();
+      const pct = (e.clientX - bar.left) / bar.width;
+      ytPlayer.seekTo(ytPlayer.getDuration() * pct, true);
+      ytUpdateProgress();
+    });
+
+    document.getElementById("ytVolumeSlider").addEventListener("input", (e) => {
+      const vol = parseInt(e.target.value, 10);
+      document.getElementById("ytVolumeLabel").textContent = vol + "%";
+      if (ytPlayer && ytReady) { ytPlayer.setVolume(vol); if (ytMuted) { ytPlayer.unMute(); ytSetMuteIcon(false); } }
+    });
+    // ── End Music Player ──────────────────────────────────────────
   </script>
 </body>
 </html>
