@@ -4,11 +4,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "playwright install chromium"
+    "postinstall": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "playwright": "^1.55.0"
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

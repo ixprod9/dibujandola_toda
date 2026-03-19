@@ -17,7 +17,9 @@
       --line:rgba(255,255,255,0.08);
       --shadow:0 10px 30px rgba(0,0,0,.28);
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Inter, Arial, sans-serif;
@@ -28,24 +30,53 @@
       display: flex;
       min-height: 100vh;
     }
+
     .sidebar {
-      width: 340px;
+      width: 300px;
+      flex: 0 0 300px;
       background: linear-gradient(180deg, rgba(28,30,36,.98), rgba(20,22,27,.98));
       border-right: 1px solid var(--line);
-      padding: 20px;
+      padding: 18px;
       box-shadow: var(--shadow);
       position: relative;
       z-index: 2;
-      flex: 0 0 340px;
+      overflow-y: auto;
+      max-height: 100vh;
     }
-    .brand-wrap{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+
+    .brand-wrap{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+    }
+
     .brand-badge{
-      width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
-      background: linear-gradient(135deg, var(--yellow), #e8b221); color:#1a1407;
-      font-weight:900; box-shadow: 0 8px 18px rgba(244,200,74,.22);
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background: linear-gradient(135deg, var(--yellow), #e8b221);
+      color:#1a1407;
+      font-weight:900;
+      box-shadow: 0 8px 18px rgba(244,200,74,.22);
     }
-    .brand {font-size: 29px;font-weight: 800;margin: 0;letter-spacing: 0.2px;line-height: 1;}
-    .brand-sub{color:var(--muted);font-size:12px;margin-top:4px;}
+
+    .brand {
+      font-size: 29px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: 0.2px;
+      line-height: 1;
+    }
+
+    .brand-sub{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:4px;
+    }
+
     .section{
       background: rgba(255,255,255,0.02);
       border:1px solid var(--line);
@@ -53,21 +84,69 @@
       padding:14px;
       margin-top:14px;
     }
+
     label {
-      display:block;color: var(--muted);font-size: 12px;font-weight: 700;letter-spacing: .04em;
-      text-transform: uppercase;margin-top: 10px;margin-bottom: 6px;
+      display:block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      margin-bottom: 6px;
     }
+
     input, button, select {
-      width: 100%;padding: 12px 12px;border-radius: 12px;border: 1px solid var(--line);
-      background: var(--panel-3);color: var(--text);box-sizing: border-box;transition: .18s ease;font-size:14px;
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel-3);
+      color: var(--text);
+      box-sizing: border-box;
+      transition: .18s ease;
+      font-size:14px;
     }
-    input:focus, select:focus {outline: none;border-color: rgba(244,200,74,.55);box-shadow: 0 0 0 3px rgba(244,200,74,.12);}
-    button {cursor: pointer;font-weight: 700;}
-    button:hover {transform: translateY(-1px);border-color: rgba(244,200,74,.35);}
-    .primary {background: linear-gradient(135deg, var(--yellow), #d7a320);color: #211906;border-color: transparent;}
-    .ghost {background: var(--panel-2);}
-    .btn-grid {display:grid;grid-template-columns: 1fr 1fr;gap:10px;margin-top:10px;}
-    .zoom-row {display: grid;grid-template-columns: repeat(4, 1fr);gap: 10px;margin-top: 10px;}
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: rgba(244,200,74,.55);
+      box-shadow: 0 0 0 3px rgba(244,200,74,.12);
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(244,200,74,.35);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--yellow), #d7a320);
+      color: #211906;
+      border-color: transparent;
+    }
+
+    .ghost {
+      background: var(--panel-2);
+    }
+
+    .btn-grid {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .zoom-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
 
     .viewer {
       flex: 1;
@@ -75,10 +154,11 @@
       flex-direction: column;
       align-items: stretch;
       justify-content: center;
-      padding: 14px 16px;
-      gap: 12px;
+      padding: 10px 12px;
+      gap: 10px;
       min-width: 0;
     }
+
     .stage-shell{
       width:100%;
       max-width:none;
@@ -87,93 +167,289 @@
       border-radius: 26px;
       padding: 12px;
       box-shadow: var(--shadow);
-      flex: 1 1 auto;
+      flex: 1;
+      height: calc(100vh - 36px);
       display:flex;
       flex-direction:column;
       min-height: 0;
     }
+
     .stage-top{
-      display:flex;justify-content:space-between;align-items:center;gap:12px;padding: 2px 4px 10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding: 2px 4px 10px;
     }
+
     .meta-pill{
-      display:inline-flex;align-items:center;gap:8px;background: rgba(244,200,74,.10);color: #f6d97e;
-      border:1px solid rgba(244,200,74,.18);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background: rgba(244,200,74,.10);
+      color: #f6d97e;
+      border:1px solid rgba(244,200,74,.18);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      font-weight:700;
     }
+
     .stage {
       width: 100%;
-      flex: 1 1 auto;
-      min-height: 72vh;
+      height: 100%;
       background: #090909;
       border-radius: 20px;
-      display: flex;align-items: center;justify-content: center;
-      overflow: hidden;position: relative;user-select: none;touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      user-select: none;
+      touch-action: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
     }
+
     .image-layer {
-      position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;
-      opacity: 0;transition: opacity 0.28s ease;pointer-events: none;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.28s ease;
+      pointer-events: none;
     }
-    .image-layer.active {opacity: 1;pointer-events: auto;}
+
+    .image-layer.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     .image-layer img {
-      max-width: 100%;max-height: 100%;object-fit: contain;transform-origin: center center;
-      will-change: transform, opacity;cursor: grab;user-select: none;-webkit-user-drag: none;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transform-origin: center center;
+      will-change: transform, opacity;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
     }
-    .image-layer img.dragging {cursor: grabbing;}
-    .placeholder {position: absolute;color: #d4c79c;z-index: 1;text-align:center;font-size:15px;}
+
+    .image-layer img.dragging {
+      cursor: grabbing;
+    }
+
+    .placeholder {
+      position: absolute;
+      color: #d4c79c;
+      z-index: 1;
+      text-align:center;
+      font-size:15px;
+    }
+
     .stage-nav {
-      position: absolute;top: 50%;transform: translateY(-50%);width: 60px;height: 60px;border-radius: 999px;
-      border: 1px solid rgba(244,200,74,.28);background: rgba(14,14,14,.62);color: var(--yellow);
-      display: flex;align-items: center;justify-content: center;cursor: pointer;z-index: 5;
-      transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;backdrop-filter: blur(4px);
-      opacity: 0.95;box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 999px;
+      border: 1px solid rgba(244,200,74,.28);
+      background: rgba(14,14,14,.62);
+      color: var(--yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+      transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+      backdrop-filter: blur(4px);
+      opacity: 0.95;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
     }
-    .stage-nav:hover {background: rgba(244,200,74,0.10);transform: translateY(-50%) scale(1.04);}
-    .stage-nav:active {transform: translateY(-50%) scale(0.98);}
+
+    .stage-nav:hover {
+      background: rgba(244,200,74,0.10);
+      transform: translateY(-50%) scale(1.04);
+    }
+
+    .stage-nav:active {
+      transform: translateY(-50%) scale(0.98);
+    }
+
     .stage-nav.left { left: 14px; }
     .stage-nav.right { right: 14px; }
     .stage-nav svg { width: 28px; height: 28px; display: block; }
 
     .bottom-bar{
-      display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;padding-bottom: 4px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      flex-wrap:wrap;
+      padding-bottom: 4px;
     }
-    .timer-wrap {display: flex;align-items: center;gap: 18px;}
-    .timer-ring {width: 78px;height: 78px;position: relative;flex: 0 0 auto;}
-    .timer-ring svg {width: 100%;height: 100%;transform: rotate(-90deg);display: block;}
-    .timer-ring-bg {fill: none;stroke: rgba(255,255,255,0.10);stroke-width: 8;}
+
+    .timer-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .timer-ring {
+      width: 78px;
+      height: 78px;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .timer-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      display: block;
+    }
+
+    .timer-ring-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.10);
+      stroke-width: 8;
+    }
+
     .timer-ring-progress {
-      fill: none;stroke: var(--yellow);stroke-width: 8;stroke-linecap: round;transition: stroke-dashoffset 0.2s linear;
+      fill: none;
+      stroke: var(--yellow);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.2s linear;
       filter: drop-shadow(0 0 6px rgba(244,200,74,.18));
     }
+
     .timer-ring-center {
-      position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;
-      font-size: 12px;color: #f7d975;font-weight: 800;letter-spacing: 0.4px;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #f7d975;
+      font-weight: 800;
+      letter-spacing: 0.4px;
     }
-    .timer-block {display: flex;flex-direction: column;align-items: flex-start;}
-    .timer {font-size: 52px;font-weight: 800;line-height: 1;letter-spacing: -.03em;}
+
+    .timer-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .timer {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.03em;
+    }
+
     .timer-bar {
-      width: 320px;max-width: 42vw;height: 10px;border-radius: 999px;background: rgba(255,255,255,0.10);
-      overflow: hidden;margin-top: 10px;border: 1px solid rgba(255,255,255,0.04);
+      width: 320px;
+      max-width: 42vw;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      overflow: hidden;
+      margin-top: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
     }
-    .timer-bar-fill {height: 100%;width: 100%;background: linear-gradient(90deg, var(--yellow), var(--yellow-2));transition: width 0.2s linear;}
-    .status {color: var(--muted);font-size: 14px;margin-top: 12px;line-height: 1.4;white-space: pre-wrap;min-height:40px;}
+
+    .timer-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--yellow), var(--yellow-2));
+      transition: width 0.2s linear;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      min-height:40px;
+    }
+
     .progress-wrap { margin-top: 12px; }
+
     .progress-bar {
-      width: 100%;height: 12px;background: rgba(255,255,255,0.06);border: 1px solid var(--line);
-      border-radius: 999px;overflow: hidden;
+      width: 100%;
+      height: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
     }
-    .progress-fill {height: 100%;width: 0%;background: linear-gradient(90deg, var(--yellow), var(--yellow-2));transition: width 0.2s ease;}
-    .progress-text {font-size: 13px;color: var(--muted);margin-top: 8px;line-height: 1.4;}
-    .hint {font-size: 12px;color: #9e977f;margin-top: 10px;line-height: 1.45;}
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--yellow), var(--yellow-2));
+      transition: width 0.2s ease;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #9e977f;
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+
     .kbd{
-      display:inline-block;min-width:22px;padding:2px 7px;border-radius:8px;background:#23262d;border:1px solid var(--line);
-      color:#f5df8f;font-size:11px;font-weight:800;text-align:center;
+      display:inline-block;
+      min-width:22px;
+      padding:2px 7px;
+      border-radius:8px;
+      background:#23262d;
+      border:1px solid var(--line);
+      color:#f5df8f;
+      font-size:11px;
+      font-weight:800;
+      text-align:center;
     }
+
+    .log-panel {
+      height: 180px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(244, 200, 74, 0.18);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #f4c84a;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
     @media (max-width: 1000px) {
       body { flex-direction: column; }
-      .sidebar { width: auto; flex-basis: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .sidebar {
+        width: auto;
+        flex-basis: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
       .timer { font-size: 40px; }
       .stage-nav { width: 54px; height: 54px; }
-      .stage { min-height: 56vh; }
+      .stage-shell { height: auto; }
+      .stage { min-height: 60vh; }
     }
   </style>
 </head>
@@ -230,7 +506,12 @@
       </div>
 
       <div class="hint">
-        Wheel to zoom. Drag to pan. Keyboard: <span class="kbd">←</span> <span class="kbd">→</span> to switch, <span class="kbd">Space</span> pause/start.
+        Wheel to zoom. Drag to pan. Keyboard:
+        <span class="kbd">←</span>
+        <span class="kbd">→</span>
+        to switch,
+        <span class="kbd">Space</span>
+        pause/start.
       </div>
     </div>
 
@@ -240,6 +521,11 @@
       </div>
       <div id="progressText" class="progress-text">Idle</div>
       <div class="status" id="status">Paste a Pinterest board link, then click Load board.</div>
+    </div>
+
+    <div class="section">
+      <label>Debug logs</label>
+      <div id="logPanel" class="log-panel">Waiting for logs…</div>
     </div>
   </div>
 
@@ -321,6 +607,7 @@
     const slotLabelEl = document.getElementById("slotLabel");
     const progressFillEl = document.getElementById("progressFill");
     const progressTextEl = document.getElementById("progressText");
+    const logPanelEl = document.getElementById("logPanel");
     const stageEl = document.getElementById("stage");
     const timerBarFillEl = document.getElementById("timerBarFill");
     const timerRingProgressEl = document.getElementById("timerRingProgress");
@@ -346,10 +633,18 @@
     let isTransitioning = false;
     let pendingIndex = null;
     let imageToken = 0;
+    let lastNavTime = 0;
+    const NAV_COOLDOWN = 200;
 
     const transformState = {
-      scale: 1, x: 0, y: 0, dragging: false,
-      dragStartX: 0, dragStartY: 0, startX: 0, startY: 0
+      scale: 1,
+      x: 0,
+      y: 0,
+      dragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      startX: 0,
+      startY: 0
     };
 
     const RING_RADIUS = 32;
@@ -357,15 +652,30 @@
     timerRingProgressEl.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
     timerRingProgressEl.style.strokeDashoffset = `0`;
 
-    function getActiveLayer() { return layers[activeLayerIndex]; }
-    function getInactiveLayer() { return layers[activeLayerIndex === 0 ? 1 : 0]; }
+    function getActiveLayer() {
+      return layers[activeLayerIndex];
+    }
+
+    function getInactiveLayer() {
+      return layers[activeLayerIndex === 0 ? 1 : 0];
+    }
 
     function applyTransform() {
       const active = getActiveLayer();
       active.img.style.transform = `translate(${transformState.x}px, ${transformState.y}px) scale(${transformState.scale})`;
     }
-    function resetTransform() { transformState.scale = 1; transformState.x = 0; transformState.y = 0; applyTransform(); }
-    function fitTransform() { resetTransform(); }
+
+    function resetTransform() {
+      transformState.scale = 1;
+      transformState.x = 0;
+      transformState.y = 0;
+      applyTransform();
+    }
+
+    function fitTransform() {
+      resetTransform();
+    }
+
     function zoomBy(delta) {
       const next = Math.max(1, Math.min(5, transformState.scale + delta));
       transformState.scale = Number(next.toFixed(2));
@@ -384,6 +694,7 @@
         const active = getActiveLayer();
         if (!active.layer.classList.contains("active")) return;
         if (event.target !== active.img) return;
+
         transformState.dragging = true;
         transformState.dragStartX = event.clientX;
         transformState.dragStartY = event.clientY;
@@ -448,6 +759,26 @@
       slotLabelEl.textContent = `Slot ${Math.max(1, currentIndex + 1)}`;
     }
 
+    function updateLogs(logs) {
+      if (!logPanelEl) return;
+      if (!logs || !logs.length) {
+        logPanelEl.textContent = "Waiting for logs…";
+        return;
+      }
+
+      logPanelEl.innerHTML = logs.map(l =>
+        `[${new Date(l.time).toLocaleTimeString()}] ${l.message}`
+      ).join("<br>");
+
+      logPanelEl.scrollTop = logPanelEl.scrollHeight;
+    }
+
+    function preloadImage(index) {
+      if (!images[index]) return;
+      const img = new Image();
+      img.src = images[index].image;
+    }
+
     function setImageInstant(index) {
       if (!images.length || index < 0 || index >= images.length) return;
       imageToken += 1;
@@ -464,11 +795,15 @@
       updateMeta();
       isTransitioning = false;
       pendingIndex = null;
+      preloadImage(getNextIndex());
     }
 
     function showImage(index) {
       if (!images.length || index < 0 || index >= images.length) return;
-      if (isTransitioning) { pendingIndex = index; return; }
+      if (isTransitioning) {
+        pendingIndex = index;
+        return;
+      }
       if (index === currentIndex) return;
 
       isTransitioning = true;
@@ -492,6 +827,7 @@
         nextLayer.img.onload = null;
         nextLayer.img.onerror = null;
         isTransitioning = false;
+        preloadImage(getNextIndex());
 
         if (pendingIndex !== null && pendingIndex !== currentIndex) {
           const nextPending = pendingIndex;
@@ -513,7 +849,11 @@
 
     function getNextIndex() {
       if (!images.length) return -1;
-      if (modeEl.value === "sequential") return currentIndex < 0 ? 0 : (currentIndex + 1) % images.length;
+
+      if (modeEl.value === "sequential") {
+        return currentIndex < 0 ? 0 : (currentIndex + 1) % images.length;
+      }
+
       if (images.length === 1) return 0;
 
       let next, tries = 0;
@@ -521,6 +861,7 @@
         next = Math.floor(Math.random() * images.length);
         tries += 1;
       } while (next === currentIndex && tries < 12);
+
       return next;
     }
 
@@ -552,9 +893,15 @@
       endAt = Date.now() + ms;
 
       countdownInterval = setInterval(updateCountdown, 200);
+
       timerTimeout = setTimeout(() => {
         if (images.length) {
-          nextImage();
+          const next = getNextIndex();
+          if (next >= 0) {
+            isTransitioning = false;
+            pendingIndex = null;
+            showImage(next);
+          }
         }
         scheduleAdvance(getDurationMs());
       }, ms);
@@ -572,8 +919,12 @@
       progressFillEl.style.width = "0%";
       progressTextEl.textContent = "Idle";
     }
+
     function stopProgressPolling() {
-      if (progressPoller) { clearInterval(progressPoller); progressPoller = null; }
+      if (progressPoller) {
+        clearInterval(progressPoller);
+        progressPoller = null;
+      }
     }
 
     function resetBoardView() {
@@ -584,6 +935,7 @@
       pendingIndex = null;
       imageToken += 1;
       placeholder.hidden = false;
+
       layers.forEach(({ layer, img }, idx) => {
         if (idx === 0) layer.classList.add("active");
         else layer.classList.remove("active");
@@ -591,10 +943,12 @@
         img.onload = null;
         img.onerror = null;
       });
+
       activeLayerIndex = 0;
       resetTransform();
       updateMeta();
       updateCountdown();
+      updateLogs([]);
     }
 
     async function loadBoard() {
@@ -636,11 +990,15 @@
             progressTextEl.textContent = `${job.message} (${job.processedPins || 0}/${job.totalPins || 0})`;
             statusEl.textContent = job.message;
 
+            if (job.logs) {
+              updateLogs(job.logs);
+            }
+
             if (job.status === "done") {
               stopProgressPolling();
               images = job.items || [];
-              history = [];
               currentIndex = -1;
+              history = [];
               remainingMs = getDurationMs();
 
               if (!images.length) {
@@ -675,11 +1033,16 @@
         statusEl.textContent = "Load a board first.";
         return;
       }
+
       if (paused) {
         scheduleAdvance(remainingMs);
         return;
       }
-      if (currentIndex < 0) setImageInstant(0);
+
+      if (currentIndex < 0) {
+        setImageInstant(0);
+      }
+
       scheduleAdvance(getDurationMs());
     }
 
@@ -701,13 +1064,25 @@
     }
 
     function handleStageNext() {
+      const now = Date.now();
+      if (now - lastNavTime < NAV_COOLDOWN) return;
+      lastNavTime = now;
+
       if (!images.length) return;
+      isTransitioning = false;
+      pendingIndex = null;
       nextImage();
       restartTimer();
     }
 
     function handleStagePrev() {
+      const now = Date.now();
+      if (now - lastNavTime < NAV_COOLDOWN) return;
+      lastNavTime = now;
+
       if (!images.length) return;
+      isTransitioning = false;
+      pendingIndex = null;
       previousImage();
       restartTimer();
     }
@@ -742,7 +1117,10 @@
     zoomOutBtn.addEventListener("click", () => zoomBy(-0.2));
     zoomResetBtn.addEventListener("click", resetTransform);
     fitBtn.addEventListener("click", fitTransform);
-    [minutesEl, secondsEl].forEach(el => el.addEventListener("change", restartTimer));
+
+    [minutesEl, secondsEl].forEach(el => {
+      el.addEventListener("change", restartTimer);
+    });
 
     countdownEl.textContent = formatMs(remainingMs);
     resetProgressUi();
@@ -750,6 +1128,7 @@
     updateCountdown();
     setStageInteraction();
     setupKeyboard();
+    updateLogs([]);
   </script>
 </body>
 </html>
