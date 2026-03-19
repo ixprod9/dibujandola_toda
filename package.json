@@ -1,10 +1,11 @@
 {
   "name": "dibujandola-toda",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node server.js",
-    "postinstall": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium"
+    "start": "electron .",
+    "postinstall": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium-headless-shell",
+    "build": "electron-builder"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -12,6 +13,59 @@
     "playwright": "^1.58.2"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.dibujandolatoda.app",
+    "productName": "Dibujandola Toda",
+    "compression": "maximum",
+    "files": [
+      "main.js",
+      "server.js",
+      "public/**/*",
+      "node_modules/**/*",
+      "!node_modules/**/*.md",
+      "!node_modules/**/*.map",
+      "!node_modules/**/*.ts",
+      "!node_modules/**/*.d.ts",
+      "!node_modules/**/test/**",
+      "!node_modules/**/tests/**",
+      "!node_modules/**/__tests__/**",
+      "!node_modules/**/docs/**",
+      "!node_modules/**/.github/**",
+      "!node_modules/**/example/**",
+      "!node_modules/**/examples/**",
+      "!node_modules/**/CHANGELOG*",
+      "!node_modules/**/LICENSE*",
+      "!node_modules/**/README*",
+      "!node_modules/**/.nyc_output/**",
+      "!node_modules/**/coverage/**",
+      "!node_modules/playwright-core/.local-browsers/**",
+      "!node_modules/playwright/.local-browsers/**"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/playwright-core/.local-browsers",
+        "to": "playwright-browsers",
+        "filter": [
+          "chromium_headless_shell-*/**"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

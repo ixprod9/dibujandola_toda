@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dibujandola Toda</title>
+  <link rel="icon" type="image/x-icon" href="/icon.ico" />
   <style>
     :root{
       --bg:#0f1012;
@@ -23,12 +24,19 @@
     body {
       margin: 0;
       font-family: Inter, Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(244,200,74,0.08), transparent 30%),
-        linear-gradient(180deg, #0d0f12 0%, #111318 100%);
+      background: #090909;
       color: var(--text);
       display: flex;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
     }
 
     .sidebar {
@@ -42,6 +50,16 @@
       z-index: 2;
       overflow-y: auto;
       max-height: 100vh;
+      transition: width 0.25s ease, flex-basis 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      flex: 0 0 0;
+      padding: 0;
+      opacity: 0;
+      overflow: hidden;
+      border-right: none;
     }
 
     .brand-wrap{
@@ -150,56 +168,71 @@
 
     .viewer {
       flex: 1;
+      position: relative;
+      min-width: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .stage-shell {
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      justify-content: center;
-      padding: 10px 12px;
-      gap: 10px;
-      min-width: 0;
+      position: relative;
     }
 
-    .stage-shell{
-      width:100%;
-      max-width:none;
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      border:1px solid var(--line);
-      border-radius: 26px;
-      padding: 12px;
-      box-shadow: var(--shadow);
-      flex: 1;
-      height: calc(100vh - 36px);
-      display:flex;
-      flex-direction:column;
-      min-height: 0;
+    /* Top overlay bar */
+    .stage-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 100%);
+      pointer-events: none;
     }
 
-    .stage-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      padding: 2px 4px 10px;
-    }
+    .stage-top > * { pointer-events: auto; }
 
-    .meta-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      background: rgba(244,200,74,.10);
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(10,10,12,0.72);
       color: #f6d97e;
-      border:1px solid rgba(244,200,74,.18);
-      border-radius:999px;
-      padding:8px 12px;
-      font-size:13px;
-      font-weight:700;
+      border: 1px solid rgba(244,200,74,.22);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
     }
 
+    .grid-toggle {
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(10,10,12,0.72);
+      border: 1px solid rgba(244,200,74,.2);
+      color: var(--yellow);
+      backdrop-filter: blur(8px);
+    }
+
+    .grid-toggle svg { width: 18px; height: 18px; display: block; }
+
+    /* Full-screen stage */
     .stage {
       width: 100%;
       height: 100%;
       background: #090909;
-      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -207,8 +240,163 @@
       position: relative;
       user-select: none;
       touch-action: none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
     }
+
+    /* Right anchor — HUD + next arrow fixed to right edge */
+    .right-anchor {
+      position: absolute;
+      right: 18px;
+      top: 60px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .right-anchor > * { pointer-events: auto; }
+
+    /* Vertical HUD */
+    .bottom-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: rgba(10,10,14,0.88);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 10px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,200,74,0.06);
+      min-width: 58px;
+      user-select: none;
+    }
+
+    /* Inline next arrow below HUD */
+    .stage-nav-inline {
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+      border: 1px solid rgba(244,200,74,.28);
+      background: rgba(14,14,14,.62);
+      color: var(--yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .stage-nav-inline:hover {
+      background: rgba(244,200,74,0.10);
+      transform: scale(1.06);
+    }
+
+    .stage-nav-inline svg { width: 24px; height: 24px; display: block; }
+
+    .hud-drag-handle {
+      cursor: grab;
+      color: rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 2px 0 4px;
+      transition: color 0.15s;
+    }
+    .hud-drag-handle:hover { color: var(--yellow); }
+    .hud-drag-handle:active { cursor: grabbing; }
+
+    .hud-sep {
+      width: 70%;
+      height: 1px;
+      background: rgba(255,255,255,0.12);
+      margin: 2px 0;
+    }
+
+    .timer-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .timer-ring {
+      width: 40px;
+      height: 40px;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .timer-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      display: block;
+    }
+
+    .timer-ring-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.12);
+      stroke-width: 5;
+    }
+
+    .timer-ring-progress {
+      fill: none;
+      stroke: var(--yellow);
+      stroke-width: 5;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.2s linear;
+      filter: drop-shadow(0 0 4px rgba(244,200,74,.4));
+    }
+
+    .timer-ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #f7d975;
+      font-weight: 800;
+    }
+
+    .timer {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+
+    /* HUD icon buttons */
+    .hud-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.12s;
+      padding: 0;
+    }
+
+    .hud-btn:hover {
+      background: rgba(244,200,74,0.12);
+      border-color: rgba(244,200,74,0.35);
+      color: var(--yellow);
+      transform: scale(1.08);
+    }
+
+    .hud-btn:active { transform: scale(0.94); }
+    .hud-btn svg { width: 15px; height: 15px; display: block; }
+
 
     .image-layer {
       position: absolute;
@@ -219,6 +407,7 @@
       opacity: 0;
       transition: opacity 0.28s ease;
       pointer-events: none;
+      z-index: 2;
     }
 
     .image-layer.active {
@@ -235,6 +424,13 @@
       cursor: grab;
       user-select: none;
       -webkit-user-drag: none;
+      color: transparent;
+      font-size: 0;
+      visibility: hidden;
+    }
+
+    .image-layer.active img.loaded {
+      visibility: visible;
     }
 
     .image-layer img.dragging {
@@ -243,10 +439,32 @@
 
     .placeholder {
       position: absolute;
-      color: #d4c79c;
       z-index: 1;
-      text-align:center;
-      font-size:15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .placeholder[hidden] {
+      display: none !important;
+    }
+
+    .spinner-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-ring {
+      width: 52px;
+      height: 52px;
+      filter: drop-shadow(0 0 8px rgba(244,200,74,0.3));
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .stage-nav {
@@ -282,93 +500,6 @@
     .stage-nav.left { left: 14px; }
     .stage-nav.right { right: 14px; }
     .stage-nav svg { width: 28px; height: 28px; display: block; }
-
-    .bottom-bar{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:18px;
-      flex-wrap:wrap;
-      padding-bottom: 4px;
-    }
-
-    .timer-wrap {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .timer-ring {
-      width: 78px;
-      height: 78px;
-      position: relative;
-      flex: 0 0 auto;
-    }
-
-    .timer-ring svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      display: block;
-    }
-
-    .timer-ring-bg {
-      fill: none;
-      stroke: rgba(255,255,255,0.10);
-      stroke-width: 8;
-    }
-
-    .timer-ring-progress {
-      fill: none;
-      stroke: var(--yellow);
-      stroke-width: 8;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.2s linear;
-      filter: drop-shadow(0 0 6px rgba(244,200,74,.18));
-    }
-
-    .timer-ring-center {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: #f7d975;
-      font-weight: 800;
-      letter-spacing: 0.4px;
-    }
-
-    .timer-block {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .timer {
-      font-size: 52px;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -.03em;
-    }
-
-    .timer-bar {
-      width: 320px;
-      max-width: 42vw;
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.10);
-      overflow: hidden;
-      margin-top: 10px;
-      border: 1px solid rgba(255,255,255,0.04);
-    }
-
-    .timer-bar-fill {
-      height: 100%;
-      width: 100%;
-      background: linear-gradient(90deg, var(--yellow), var(--yellow-2));
-      transition: width 0.2s linear;
-    }
 
     .status {
       color: var(--muted);
@@ -424,6 +555,214 @@
       text-align:center;
     }
 
+
+    .stage-top-left,
+    .stage-top-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .grid-toggle {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(244,200,74,.08);
+      border: 1px solid rgba(244,200,74,.2);
+      color: var(--yellow);
+    }
+
+    .grid-toggle svg {
+      width: 21px;
+      height: 21px;
+      display: block;
+    }
+
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 0;
+      background:
+        linear-gradient(180deg, rgba(18,20,24,.95), rgba(12,13,16,.97));
+      border: none;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px) scale(.985);
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .grid-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .grid-overlay-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+
+    .grid-overlay-title {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 800;
+      color: #f6d97e;
+    }
+
+    .grid-close {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      padding: 0;
+      display:grid;
+      place-items:center;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      color: #ff7171;
+    }
+
+    .grid-close svg {
+      width: 22px;
+      height: 22px;
+      display:block;
+    }
+
+    .grid-overlay-body {
+      padding: 16px;
+      overflow-y: auto;
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
+    .grid-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .grid-item {
+      position: relative;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px;
+      overflow: hidden;
+      padding: 0;
+      min-height: 100px;
+      aspect-ratio: 3 / 4;
+    }
+
+    .grid-item:hover {
+      border-color: rgba(244,200,74,.34);
+      box-shadow: 0 0 0 2px rgba(244,200,74,.08);
+    }
+
+    .grid-item.active {
+      border-color: rgba(244,200,74,.65);
+      box-shadow: 0 0 0 2px rgba(244,200,74,.18);
+    }
+
+    .grid-item.disabled .grid-thumb {
+      filter: grayscale(1);
+      opacity: 0.45;
+    }
+
+    .grid-item-check {
+      position: absolute;
+      bottom: 7px;
+      right: 7px;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: rgba(10,10,14,0.75);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 4;
+      transition: background 0.15s, border-color 0.15s;
+      backdrop-filter: blur(4px);
+    }
+
+    .grid-item-check:hover {
+      border-color: var(--yellow);
+    }
+
+    .grid-item-check.checked {
+      background: var(--yellow);
+      border-color: var(--yellow);
+    }
+
+    .grid-item-check svg {
+      width: 11px;
+      height: 11px;
+      display: block;
+      opacity: 0;
+      color: #1a1407;
+    }
+
+    .grid-item-check.checked svg {
+      opacity: 1;
+    }
+
+    .grid-thumb-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: rgba(255,255,255,.02);
+    }
+
+    .grid-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .grid-item-index {
+      position:absolute;
+      left:8px;
+      top:8px;
+      min-width: 26px;
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 999px;
+      display:grid;
+      place-items:center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #1c1506;
+      background: linear-gradient(135deg, var(--yellow), var(--yellow-2));
+      box-shadow: 0 6px 16px rgba(0,0,0,.25);
+    }
+
+    .grid-empty {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 8px 2px;
+    }
+
     .log-panel {
       height: 180px;
       overflow-y: auto;
@@ -450,16 +789,20 @@
       .stage-nav { width: 54px; height: 54px; }
       .stage-shell { height: auto; }
       .stage { min-height: 60vh; }
+      .grid-overlay { inset: 8px; }
+      .grid-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+      }
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <div class="brand-wrap">
-      <div class="brand-badge">D</div>
+      <div class="brand-badge" style="font-size:13px;">cño</div>
       <div>
         <div class="brand">Dibujandola Toda</div>
-        <div class="brand-sub">Fast drawing practice board</div>
+        <div class="brand-sub">Pintameeeeeee</div>
       </div>
     </div>
 
@@ -484,11 +827,8 @@
         <option value="sequential">Sequential</option>
       </select>
 
-      <div class="btn-grid">
-        <button id="loadBtn" class="primary">Load board</button>
-        <button id="startBtn" class="ghost">Start</button>
-        <button id="pauseBtn" class="ghost">Pause</button>
-        <button id="stopBtn" class="ghost">Stop</button>
+      <div style="margin-top:10px;">
+        <button id="loadBtn" class="primary" style="width:100%">Load board</button>
       </div>
     </div>
 
@@ -510,6 +850,10 @@
         <span class="kbd">←</span>
         <span class="kbd">→</span>
         to switch,
+        <span class="kbd">G</span>
+        grid,
+        <span class="kbd">Esc</span>
+        close,
         <span class="kbd">Space</span>
         pause/start.
       </div>
@@ -532,12 +876,56 @@
   <div class="viewer">
     <div class="stage-shell">
       <div class="stage-top">
-        <div class="meta-pill"><span>Board</span> <span id="meta">0 / 0</span></div>
-        <div class="meta-pill"><span id="slotLabel">Slot 1</span></div>
+        <div class="stage-top-left">
+          <div class="meta-pill"><span>Pin</span> <span id="meta">0 / 0</span></div>
+          <button id="gridToggleBtn" class="grid-toggle" aria-label="Open grid view" title="Open grid view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            </svg>
+          </button>
+          <button id="sidebarToggleBtn" class="grid-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="21" height="21">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 3v18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="stage-top-right"></div>
+      </div>
+
+
+      <div id="gridOverlay" class="grid-overlay" aria-hidden="true">
+        <div class="grid-overlay-header">
+          <div class="grid-overlay-title" style="display:flex;align-items:center;gap:10px;">
+            <div class="meta-pill"><span>Pin</span> <span id="gridPinCount">0 / 0</span></div>
+            <span class="meta-pill" id="gridCountPill">0 / 0 images</span>
+          </div>
+          <button id="gridCloseBtn" class="grid-close" aria-label="Close grid view" title="Close grid view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18"></path>
+              <path d="M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="grid-overlay-body">
+          <div id="gridGallery" class="grid-gallery"></div>
+        </div>
       </div>
 
       <div class="stage" id="stage">
-        <div id="placeholder" class="placeholder">No image loaded yet.</div>
+        <div id="placeholder" class="placeholder" hidden>
+          <div class="spinner-wrap">
+            <svg class="spinner-ring" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(244,200,74,0.18)" stroke-width="4"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--yellow)" stroke-width="4"
+                stroke-linecap="round" stroke-dasharray="28 85"
+                style="transform-origin:center;animation:spin 1s linear infinite"/>
+            </svg>
+          </div>
+        </div>
 
         <button id="stagePrevBtn" class="stage-nav left" aria-label="Previous image" title="Previous image">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -545,11 +933,40 @@
           </svg>
         </button>
 
-        <button id="stageNextBtn" class="stage-nav right" aria-label="Next image" title="Next image">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M9 6l6 6-6 6"></path>
-          </svg>
-        </button>
+        <!-- Right anchor: next arrow + HUD stacked together -->
+        <div class="right-anchor">
+          <div class="bottom-bar" id="hudWidget">
+            <div class="hud-drag-handle" id="hudHandle" title="Drag to move">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><circle cx="7" cy="4" r="1.5"/><circle cx="13" cy="4" r="1.5"/><circle cx="7" cy="10" r="1.5"/><circle cx="13" cy="10" r="1.5"/><circle cx="7" cy="16" r="1.5"/><circle cx="13" cy="16" r="1.5"/></svg>
+            </div>
+            <div class="timer-wrap">
+              <div class="timer-ring">
+                <svg viewBox="0 0 42 42" aria-hidden="true">
+                  <circle class="timer-ring-bg" cx="21" cy="21" r="17"></circle>
+                  <circle id="timerRingProgress" class="timer-ring-progress" cx="21" cy="21" r="17"></circle>
+                </svg>
+                <div id="timerRingCenter" class="timer-ring-center">100%</div>
+              </div>
+              <div class="timer" id="countdown">01:00</div>
+            </div>
+            <div class="hud-sep"></div>
+            <button id="startBtn" class="hud-btn" title="Start (Space)">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 20,12 5,21"/></svg>
+            </button>
+            <button id="pauseBtn" class="hud-btn" title="Pause (Space)">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="3" width="5" height="18" rx="1.5"/><rect x="14" y="3" width="5" height="18" rx="1.5"/></svg>
+            </button>
+            <button id="stopBtn" class="hud-btn" title="Stop">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2.5"/></svg>
+            </button>
+          </div>
+
+          <button id="stageNextBtn" class="stage-nav-inline" aria-label="Next image" title="Next image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 6l6 6-6 6"></path>
+            </svg>
+          </button>
+        </div>
 
         <div id="layerA" class="image-layer active">
           <img id="imageA" alt="Drawing reference" draggable="false" />
@@ -557,25 +974,6 @@
 
         <div id="layerB" class="image-layer">
           <img id="imageB" alt="Drawing reference" draggable="false" />
-        </div>
-      </div>
-    </div>
-
-    <div class="bottom-bar">
-      <div class="timer-wrap">
-        <div class="timer-ring">
-          <svg viewBox="0 0 80 80" aria-hidden="true">
-            <circle class="timer-ring-bg" cx="40" cy="40" r="32"></circle>
-            <circle id="timerRingProgress" class="timer-ring-progress" cx="40" cy="40" r="32"></circle>
-          </svg>
-          <div id="timerRingCenter" class="timer-ring-center">100%</div>
-        </div>
-
-        <div class="timer-block">
-          <div class="timer" id="countdown">01:00</div>
-          <div class="timer-bar">
-            <div id="timerBarFill" class="timer-bar-fill"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -599,6 +997,13 @@
     const zoomOutBtn = document.getElementById("zoomOutBtn");
     const zoomResetBtn = document.getElementById("zoomResetBtn");
     const fitBtn = document.getElementById("fitBtn");
+    const gridToggleBtn = document.getElementById("gridToggleBtn");
+    const gridCloseBtn = document.getElementById("gridCloseBtn");
+    const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+    const sidebarEl = document.querySelector(".sidebar");
+    const gridOverlayEl = document.getElementById("gridOverlay");
+    const gridGalleryEl = document.getElementById("gridGallery");
+    const gridCountPillEl = document.getElementById("gridCountPill");
 
     const statusEl = document.getElementById("status");
     const placeholder = document.getElementById("placeholder");
@@ -634,6 +1039,7 @@
     let pendingIndex = null;
     let imageToken = 0;
     let lastNavTime = 0;
+    let isGridOpen = false;
     const NAV_COOLDOWN = 200;
 
     const transformState = {
@@ -647,7 +1053,7 @@
       startY: 0
     };
 
-    const RING_RADIUS = 32;
+    const RING_RADIUS = 17;
     const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
     timerRingProgressEl.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
     timerRingProgressEl.style.strokeDashoffset = `0`;
@@ -665,19 +1071,56 @@
       active.img.style.transform = `translate(${transformState.x}px, ${transformState.y}px) scale(${transformState.scale})`;
     }
 
-    function resetTransform() {
-      transformState.scale = 1;
+    function computeFitScale(img) {
+      const stage = stageEl.getBoundingClientRect();
+      if (!img.naturalWidth || !img.naturalHeight) return 1;
+      const scaleW = stage.width / img.naturalWidth;
+      const scaleH = stage.height / img.naturalHeight;
+      return Math.min(scaleW, scaleH); // fill stage, upscale small images too
+    }
+
+    function applyFitToImage(img) {
+      const stage = stageEl.getBoundingClientRect();
+      const w = img.naturalWidth  || img.width;
+      const h = img.naturalHeight || img.height;
+      if (!w || !h) return;
+      transformState.scale = Math.min(stage.width / w, stage.height / h);
       transformState.x = 0;
       transformState.y = 0;
       applyTransform();
     }
 
-    function fitTransform() {
-      resetTransform();
+    function fitWhenReady(img) {
+      const doFit = () => {
+        img.classList.add("loaded");
+        placeholder.hidden = true;
+        applyFitToImage(img);
+      };
+      if (img.complete && img.naturalWidth) {
+        doFit();
+      } else {
+        img.onload = doFit;
+      }
+    }
+
+    function resetTransform() {
+      const active = getActiveLayer();
+      applyFitToImage(active.img);
+    }
+
+    function fitTransform() { resetTransform(); }
+
+    function computeFitScale(img) {
+      const stage = stageEl.getBoundingClientRect();
+      const w = img.naturalWidth  || img.width  || 1;
+      const h = img.naturalHeight || img.height || 1;
+      return Math.min(stage.width / w, stage.height / h);
     }
 
     function zoomBy(delta) {
-      const next = Math.max(1, Math.min(5, transformState.scale + delta));
+      const active = getActiveLayer();
+      const minScale = computeFitScale(active.img);
+      const next = Math.max(minScale, Math.min(5, transformState.scale + delta));
       transformState.scale = Number(next.toFixed(2));
       applyTransform();
     }
@@ -736,7 +1179,7 @@
     function updateTimerVisuals(ms) {
       const duration = Math.max(1000, getDurationMs());
       const ratio = Math.max(0, Math.min(1, ms / duration));
-      timerBarFillEl.style.width = `${ratio * 100}%`;
+      if (timerBarFillEl) timerBarFillEl.style.width = `${ratio * 100}%`;
       timerRingProgressEl.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - ratio)}`;
       timerRingCenterEl.textContent = `${Math.round(ratio * 100)}%`;
     }
@@ -755,8 +1198,78 @@
     }
 
     function updateMeta() {
-      metaEl.textContent = images.length ? `${Math.max(0, currentIndex + 1)} / ${images.length}` : "0 / 0";
-      slotLabelEl.textContent = `Slot ${Math.max(1, currentIndex + 1)}`;
+      const total = images.length;
+      const enabled = total - disabledIndices.size;
+      const current = Math.max(0, currentIndex + 1);
+      metaEl.textContent = total ? `${current} / ${total}` : "0 / 0";
+      if (slotLabelEl) slotLabelEl.textContent = `Slot ${current}`;
+      const gridPinCountEl = document.getElementById("gridPinCount");
+      if (gridPinCountEl) gridPinCountEl.textContent = `${current} / ${total}`;
+      if (gridCountPillEl) {
+        gridCountPillEl.textContent = `${enabled} of ${total} enabled`;
+      }
+    }
+
+
+    function openGrid() {
+      isGridOpen = true;
+      gridOverlayEl.classList.add("open");
+      gridOverlayEl.setAttribute("aria-hidden", "false");
+    }
+
+    function closeGrid() {
+      isGridOpen = false;
+      gridOverlayEl.classList.remove("open");
+      gridOverlayEl.setAttribute("aria-hidden", "true");
+    }
+
+    function toggleGrid() {
+      if (isGridOpen) closeGrid();
+      else openGrid();
+    }
+
+    const disabledIndices = new Set();
+
+    function renderGrid() {
+      updateMeta();
+
+      if (!gridGalleryEl) return;
+
+      if (!images.length) {
+        gridGalleryEl.innerHTML = `<div class="grid-empty">Images will appear here as they finish loading from the board.</div>`;
+        return;
+      }
+
+      gridGalleryEl.innerHTML = images.map((item, index) => {
+        const isDisabled = disabledIndices.has(index);
+        const isChecked = !isDisabled;
+        return `
+        <button class="grid-item ${index === currentIndex ? "active" : ""} ${isDisabled ? "disabled" : ""}" data-index="${index}" aria-label="Open image ${index + 1}">
+          <span class="grid-item-index">${index + 1}</span>
+          <div class="grid-thumb-wrap">
+            <img class="grid-thumb" src="${item.image}" alt="${(item.title || "Board image").replace(/"/g, "&quot;")}" loading="lazy" />
+          </div>
+          <span class="grid-item-check ${isChecked ? "checked" : ""}" data-check="${index}" title="${isChecked ? "Exclude from rotation" : "Include in rotation"}">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1.5,6 4.5,9 10.5,3"/>
+            </svg>
+          </span>
+        </button>`;
+      }).join("");
+
+      // Attach checkbox click handlers
+      gridGalleryEl.querySelectorAll(".grid-item-check").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const idx = Number(btn.dataset.check);
+          if (disabledIndices.has(idx)) {
+            disabledIndices.delete(idx);
+          } else {
+            disabledIndices.add(idx);
+          }
+          renderGrid();
+        });
+      });
     }
 
     function updateLogs(logs) {
@@ -787,14 +1300,17 @@
       layers[1].layer.classList.remove("active");
       layers[0].img.onload = null;
       layers[1].img.onload = null;
-      layers[0].img.src = images[index].image;
-      layers[0].img.alt = images[index].title || "Drawing reference";
+      const targetImg = layers[0].img;
+      targetImg.onload = null;
+      targetImg.src = "";
+      targetImg.src = images[index].image;
+      targetImg.alt = images[index].title || "Drawing reference";
       layers[0].layer.classList.add("active");
-      placeholder.hidden = true;
-      resetTransform();
       updateMeta();
+      renderGrid();
       isTransitioning = false;
       pendingIndex = null;
+      fitWhenReady(targetImg);
       preloadImage(getNextIndex());
     }
 
@@ -815,51 +1331,65 @@
       const nextLayer = getInactiveLayer();
       const currentLayer = getActiveLayer();
 
-      nextLayer.img.onload = () => {
+      nextLayer.img.onload = null;
+      nextLayer.img.onerror = null;
+      nextLayer.img.src = "";
+      nextLayer.img.src = item.image;
+      nextLayer.img.alt = item.title || "Drawing reference";
+
+      function onLoaded() {
         if (token !== imageToken) return;
         currentIndex = index;
         placeholder.hidden = true;
         currentLayer.layer.classList.remove("active");
         nextLayer.layer.classList.add("active");
         activeLayerIndex = activeLayerIndex === 0 ? 1 : 0;
-        resetTransform();
+        nextLayer.img.classList.add("loaded");
+        applyFitToImage(nextLayer.img);
         updateMeta();
+        renderGrid();
         nextLayer.img.onload = null;
         nextLayer.img.onerror = null;
         isTransitioning = false;
         preloadImage(getNextIndex());
-
         if (pendingIndex !== null && pendingIndex !== currentIndex) {
           const nextPending = pendingIndex;
           pendingIndex = null;
           requestAnimationFrame(() => showImage(nextPending));
         }
-      };
+      }
 
-      nextLayer.img.onerror = () => {
-        if (token !== imageToken) return;
-        nextLayer.img.onload = null;
-        nextLayer.img.onerror = null;
-        isTransitioning = false;
-      };
-
-      nextLayer.img.src = item.image;
-      nextLayer.img.alt = item.title || "Drawing reference";
+      if (nextLayer.img.complete && nextLayer.img.naturalWidth) {
+        onLoaded();
+      } else {
+        nextLayer.img.onload = onLoaded;
+        nextLayer.img.onerror = () => {
+          if (token !== imageToken) return;
+          nextLayer.img.onload = null;
+          nextLayer.img.onerror = null;
+          isTransitioning = false;
+        };
+      }
     }
 
     function getNextIndex() {
       if (!images.length) return -1;
 
+      // Build pool of enabled indices
+      const pool = images.map((_, i) => i).filter(i => !disabledIndices.has(i));
+      if (!pool.length) return -1;
+
       if (modeEl.value === "sequential") {
-        return currentIndex < 0 ? 0 : (currentIndex + 1) % images.length;
+        const pos = pool.indexOf(currentIndex);
+        return pool[(pos + 1) % pool.length];
       }
 
-      if (images.length === 1) return 0;
+      if (pool.length === 1) return pool[0];
 
       let next, tries = 0;
       do {
-        next = Math.floor(Math.random() * images.length);
-        tries += 1;
+        next = pool[Math.floor(Math.random() * pool.length)];
+        tries++;
       } while (next === currentIndex && tries < 12);
 
       return next;
@@ -876,6 +1406,15 @@
       if (!history.length || isTransitioning) return;
       const prev = history.pop();
       showImage(prev);
+    }
+
+    function openImageFromGrid(index) {
+      if (!images.length || index < 0 || index >= images.length) return;
+      isTransitioning = false;
+      pendingIndex = null;
+      showImage(index);
+      closeGrid();
+      restartTimer();
     }
 
     function clearTimers() {
@@ -934,12 +1473,14 @@
       isTransitioning = false;
       pendingIndex = null;
       imageToken += 1;
-      placeholder.hidden = false;
+      placeholder.hidden = true;
+      disabledIndices.clear();
 
       layers.forEach(({ layer, img }, idx) => {
         if (idx === 0) layer.classList.add("active");
         else layer.classList.remove("active");
         img.src = "";
+        img.classList.remove("loaded");
         img.onload = null;
         img.onerror = null;
       });
@@ -947,8 +1488,10 @@
       activeLayerIndex = 0;
       resetTransform();
       updateMeta();
+      renderGrid();
       updateCountdown();
       updateLogs([]);
+      closeGrid();
     }
 
     async function loadBoard() {
@@ -961,6 +1504,7 @@
       statusEl.textContent = "Starting scrape...";
       progressFillEl.style.width = "0%";
       progressTextEl.textContent = "Starting...";
+      placeholder.hidden = false;
       clearTimers();
       running = false;
       paused = false;
@@ -994,12 +1538,22 @@
               updateLogs(job.logs);
             }
 
+            if (Array.isArray(job.items)) {
+              const prevLength = images.length;
+              images = job.items;
+              if (images.length !== prevLength) {
+                renderGrid();
+                updateMeta();
+              }
+            }
+
             if (job.status === "done") {
               stopProgressPolling();
               images = job.items || [];
               currentIndex = -1;
               history = [];
               remainingMs = getDurationMs();
+              renderGrid();
 
               if (!images.length) {
                 statusEl.textContent = "Scrape finished, but no images were returned.";
@@ -1101,6 +1655,12 @@
           event.preventDefault();
           if (running) pauseSession();
           else startSession();
+        } else if (event.key.toLowerCase() === "g") {
+          event.preventDefault();
+          toggleGrid();
+        } else if (event.key === "Escape" && isGridOpen) {
+          event.preventDefault();
+          closeGrid();
         }
       });
     }
@@ -1108,8 +1668,6 @@
     loadBtn.addEventListener("click", loadBoard);
     startBtn.addEventListener("click", startSession);
     pauseBtn.addEventListener("click", pauseSession);
-    nextBtn.addEventListener("click", handleStageNext);
-    prevBtn.addEventListener("click", handleStagePrev);
     stopBtn.addEventListener("click", stopSession);
     stageNextBtn.addEventListener("click", handleStageNext);
     stagePrevBtn.addEventListener("click", handleStagePrev);
@@ -1117,14 +1675,62 @@
     zoomOutBtn.addEventListener("click", () => zoomBy(-0.2));
     zoomResetBtn.addEventListener("click", resetTransform);
     fitBtn.addEventListener("click", fitTransform);
+    gridToggleBtn.addEventListener("click", toggleGrid);
+    gridCloseBtn.addEventListener("click", closeGrid);
+    sidebarToggleBtn.addEventListener("click", () => {
+      sidebarEl.classList.toggle("collapsed");
+    });
+
+    // Sidebar prev/next buttons (still exist in sidebar)
+    const sidebarPrevBtn = document.getElementById("prevBtn");
+    const sidebarNextBtn = document.getElementById("nextBtn");
+    if (sidebarPrevBtn) sidebarPrevBtn.addEventListener("click", handleStagePrev);
+    if (sidebarNextBtn) sidebarNextBtn.addEventListener("click", handleStageNext);
+
+    gridGalleryEl.addEventListener("click", (event) => {
+      const button = event.target.closest(".grid-item");
+      if (!button) return;
+      const index = Number(button.dataset.index);
+      if (Number.isNaN(index)) return;
+      openImageFromGrid(index);
+    });
 
     [minutesEl, secondsEl].forEach(el => {
       el.addEventListener("change", restartTimer);
     });
 
+    // HUD drag — moves right-anchor vertically only, stays on right edge
+    (function() {
+      const anchor = document.querySelector(".right-anchor");
+      const handle = document.getElementById("hudHandle");
+      if (!anchor || !handle) return;
+      let dragging = false, startY, startTop;
+
+      handle.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        handle.setPointerCapture(e.pointerId);
+        startY = e.clientY;
+        startTop = anchor.getBoundingClientRect().top - anchor.parentElement.getBoundingClientRect().top;
+        anchor.style.top = startTop + "px";
+        anchor.style.bottom = "auto";
+        e.preventDefault();
+      });
+
+      window.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const parent = anchor.parentElement.getBoundingClientRect();
+        let newTop = startTop + (e.clientY - startY);
+        newTop = Math.max(0, Math.min(parent.height - anchor.offsetHeight, newTop));
+        anchor.style.top = newTop + "px";
+      });
+
+      window.addEventListener("pointerup", () => { dragging = false; });
+    })();
+
     countdownEl.textContent = formatMs(remainingMs);
     resetProgressUi();
     updateMeta();
+    renderGrid();
     updateCountdown();
     setStageInteraction();
     setupKeyboard();
