@@ -33,6 +33,7 @@ function createJob() {
     processedPins: 0,
     items: [],
     error: null,
+    logs: []
   };
   jobs.set(id, job);
   return job;
@@ -44,13 +45,30 @@ function updateJob(jobId, patch) {
   Object.assign(job, patch);
 }
 
+function log(jobId, message) {
+  console.log(message);
+
+  const job = jobs.get(jobId);
+  if (!job) return;
+
+  job.logs.push({
+    time: Date.now(),
+    message
+  });
+
+  if (job.logs.length > 200) {
+    job.logs.shift();
+  }
+}
+
 function upgradeToOriginals(url) {
   if (!url || !url.includes("pinimg.com")) return url;
   return url
     .replace("/236x/", "/originals/")
     .replace("/474x/", "/originals/")
     .replace("/564x/", "/originals/")
-    .replace("/736x/", "/originals/");
+    .replace("/736x/", "/originals/")
+    .replace("/1200x/", "/originals/");
 }
 
 function normalizePinUrl(rawUrl) {
@@ -78,13 +96,10 @@ async function collectBoardPins(page, jobId) {
       const seen = new Set();
       const results = [];
 
-      let cutoffReached = false;
-
       for (const a of anchors) {
         const text = (a.textContent || "").trim();
 
         if (stopTexts.some(t => text.includes(t))) {
-          cutoffReached = true;
           break;
         }
 
@@ -92,7 +107,6 @@ async function collectBoardPins(page, jobId) {
         if (!img) continue;
 
         const rect = a.getBoundingClientRect();
-
         if (rect.width < 100 || rect.height < 100) continue;
         if (rect.width === 0 || rect.height === 0) continue;
 
@@ -104,7 +118,9 @@ async function collectBoardPins(page, jobId) {
             seen.add(clean);
             results.push(clean);
           }
-        } catch {}
+        } catch {
+          // ignore bad urls
+        }
       }
 
       return results;
@@ -119,6 +135,8 @@ async function collectBoardPins(page, jobId) {
       progress: 10 + i * 3,
     });
 
+    log(jobId, `Scanning... best so far: ${bestLinks.length}`);
+
     await page.mouse.wheel(0, 1000);
     await page.waitForTimeout(800);
   }
@@ -126,7 +144,7 @@ async function collectBoardPins(page, jobId) {
   return bestLinks;
 }
 
-async function scrapePin(context, url) {
+async function scrapePin(context, url, jobId) {
   const page = await context.newPage();
 
   try {
@@ -157,7 +175,9 @@ async function scrapePin(context, url) {
       title: data.title,
       link: normalizePinUrl(data.link),
     };
-  } catch {
+  } catch (err) {
+    log(jobId, `PIN SCRAPE FAILED: ${url}`);
+    log(jobId, err?.message || "Unknown pin scrape error");
     return null;
   } finally {
     await page.close();
@@ -166,26 +186,43 @@ async function scrapePin(context, url) {
 
 async function scrapeBoard(boardUrl, jobId) {
   let browser;
+  let context;
 
   try {
+    log(jobId, "🚀 Launching browser...");
+
     updateJob(jobId, {
       status: "running",
       message: "Launching...",
       progress: 2,
     });
 
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
+    log(jobId, "🧠 Browser launched");
 
     const page = await browser.newPage();
 
-    await page.goto(boardUrl, { waitUntil: "domcontentloaded" });
+    log(jobId, `🌐 Opening board: ${boardUrl}`);
+    await page.goto(boardUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: 60000
+    });
+
     await page.waitForTimeout(3000);
+    log(jobId, "📌 Board loaded");
 
     const pinLinks = await collectBoardPins(page, jobId);
     const uniquePinLinks = [...new Set(pinLinks)];
 
-    console.log("FINAL BOARD PINS:", uniquePinLinks.length);
-    console.log(uniquePinLinks);
+    log(jobId, `📊 Found ${uniquePinLinks.length} unique pins`);
+
+    if (!uniquePinLinks.length) {
+      throw new Error("No board pins found.");
+    }
 
     updateJob(jobId, {
       totalPins: uniquePinLinks.length,
@@ -193,13 +230,14 @@ async function scrapeBoard(boardUrl, jobId) {
       progress: 30,
     });
 
-    const context = await browser.newContext();
+    context = await browser.newContext();
     const results = [];
 
     let processed = 0;
 
     for (const link of uniquePinLinks) {
-      const item = await scrapePin(context, link);
+      log(jobId, `🔄 Scraping ${processed + 1}/${uniquePinLinks.length}`);
+      const item = await scrapePin(context, link, jobId);
 
       if (item) results.push(item);
 
@@ -213,18 +251,28 @@ async function scrapeBoard(boardUrl, jobId) {
       });
     }
 
+    log(jobId, `✅ Done. ${results.length} images returned`);
+
     updateJob(jobId, {
       status: "done",
       items: results,
       progress: 100,
       message: `Done (${results.length})`,
     });
+
+    await page.close();
   } catch (err) {
+    log(jobId, "❌ SCRAPE FAILED");
+    log(jobId, err?.message || "Unknown error");
+    log(jobId, err?.stack || "No stack");
+
     updateJob(jobId, {
       status: "error",
-      message: err.message,
+      message: err?.message || "Scrape failed.",
+      error: err?.message || "Scrape failed.",
     });
   } finally {
+    if (context) await context.close();
     if (browser) await browser.close();
   }
 }
@@ -244,7 +292,9 @@ app.post("/api/start-scrape", (req, res) => {
 
 app.get("/api/scrape-status/:jobId", (req, res) => {
   const job = jobs.get(req.params.jobId);
-  if (!job) return res.status(404).json({ error: "Not found" });
+  if (!job) {
+    return res.status(404).json({ error: "Not found" });
+  }
   res.json(job);
 });
 
