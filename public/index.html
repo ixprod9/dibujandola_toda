@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dibujandola Toda</title>
+  <style>
+    :root{
+      --bg:#0f1012;
+      --panel:#17191d;
+      --panel-2:#1d2026;
+      --panel-3:#232731;
+      --text:#f7f3df;
+      --muted:#bfb79b;
+      --yellow:#f4c84a;
+      --yellow-2:#ffdf7a;
+      --line:rgba(255,255,255,0.08);
+      --shadow:0 10px 30px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(244,200,74,0.08), transparent 30%),
+        linear-gradient(180deg, #0d0f12 0%, #111318 100%);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 340px;
+      background: linear-gradient(180deg, rgba(28,30,36,.98), rgba(20,22,27,.98));
+      border-right: 1px solid var(--line);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 2;
+      flex: 0 0 340px;
+    }
+    .brand-wrap{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+    .brand-badge{
+      width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+      background: linear-gradient(135deg, var(--yellow), #e8b221); color:#1a1407;
+      font-weight:900; box-shadow: 0 8px 18px rgba(244,200,74,.22);
+    }
+    .brand {font-size: 29px;font-weight: 800;margin: 0;letter-spacing: 0.2px;line-height: 1;}
+    .brand-sub{color:var(--muted);font-size:12px;margin-top:4px;}
+    .section{
+      background: rgba(255,255,255,0.02);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      margin-top:14px;
+    }
+    label {
+      display:block;color: var(--muted);font-size: 12px;font-weight: 700;letter-spacing: .04em;
+      text-transform: uppercase;margin-top: 10px;margin-bottom: 6px;
+    }
+    input, button, select {
+      width: 100%;padding: 12px 12px;border-radius: 12px;border: 1px solid var(--line);
+      background: var(--panel-3);color: var(--text);box-sizing: border-box;transition: .18s ease;font-size:14px;
+    }
+    input:focus, select:focus {outline: none;border-color: rgba(244,200,74,.55);box-shadow: 0 0 0 3px rgba(244,200,74,.12);}
+    button {cursor: pointer;font-weight: 700;}
+    button:hover {transform: translateY(-1px);border-color: rgba(244,200,74,.35);}
+    .primary {background: linear-gradient(135deg, var(--yellow), #d7a320);color: #211906;border-color: transparent;}
+    .ghost {background: var(--panel-2);}
+    .btn-grid {display:grid;grid-template-columns: 1fr 1fr;gap:10px;margin-top:10px;}
+    .zoom-row {display: grid;grid-template-columns: repeat(4, 1fr);gap: 10px;margin-top: 10px;}
+
+    .viewer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      padding: 14px 16px;
+      gap: 12px;
+      min-width: 0;
+    }
+    .stage-shell{
+      width:100%;
+      max-width:none;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid var(--line);
+      border-radius: 26px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      flex: 1 1 auto;
+      display:flex;
+      flex-direction:column;
+      min-height: 0;
+    }
+    .stage-top{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;padding: 2px 4px 10px;
+    }
+    .meta-pill{
+      display:inline-flex;align-items:center;gap:8px;background: rgba(244,200,74,.10);color: #f6d97e;
+      border:1px solid rgba(244,200,74,.18);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700;
+    }
+    .stage {
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 72vh;
+      background: #090909;
+      border-radius: 20px;
+      display: flex;align-items: center;justify-content: center;
+      overflow: hidden;position: relative;user-select: none;touch-action: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .image-layer {
+      position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;
+      opacity: 0;transition: opacity 0.28s ease;pointer-events: none;
+    }
+    .image-layer.active {opacity: 1;pointer-events: auto;}
+    .image-layer img {
+      max-width: 100%;max-height: 100%;object-fit: contain;transform-origin: center center;
+      will-change: transform, opacity;cursor: grab;user-select: none;-webkit-user-drag: none;
+    }
+    .image-layer img.dragging {cursor: grabbing;}
+    .placeholder {position: absolute;color: #d4c79c;z-index: 1;text-align:center;font-size:15px;}
+    .stage-nav {
+      position: absolute;top: 50%;transform: translateY(-50%);width: 60px;height: 60px;border-radius: 999px;
+      border: 1px solid rgba(244,200,74,.28);background: rgba(14,14,14,.62);color: var(--yellow);
+      display: flex;align-items: center;justify-content: center;cursor: pointer;z-index: 5;
+      transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;backdrop-filter: blur(4px);
+      opacity: 0.95;box-shadow: 0 8px 20px rgba(0,0,0,.25);
+    }
+    .stage-nav:hover {background: rgba(244,200,74,0.10);transform: translateY(-50%) scale(1.04);}
+    .stage-nav:active {transform: translateY(-50%) scale(0.98);}
+    .stage-nav.left { left: 14px; }
+    .stage-nav.right { right: 14px; }
+    .stage-nav svg { width: 28px; height: 28px; display: block; }
+
+    .bottom-bar{
+      display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;padding-bottom: 4px;
+    }
+    .timer-wrap {display: flex;align-items: center;gap: 18px;}
+    .timer-ring {width: 78px;height: 78px;position: relative;flex: 0 0 auto;}
+    .timer-ring svg {width: 100%;height: 100%;transform: rotate(-90deg);display: block;}
+    .timer-ring-bg {fill: none;stroke: rgba(255,255,255,0.10);stroke-width: 8;}
+    .timer-ring-progress {
+      fill: none;stroke: var(--yellow);stroke-width: 8;stroke-linecap: round;transition: stroke-dashoffset 0.2s linear;
+      filter: drop-shadow(0 0 6px rgba(244,200,74,.18));
+    }
+    .timer-ring-center {
+      position: absolute;inset: 0;display: flex;align-items: center;justify-content: center;
+      font-size: 12px;color: #f7d975;font-weight: 800;letter-spacing: 0.4px;
+    }
+    .timer-block {display: flex;flex-direction: column;align-items: flex-start;}
+    .timer {font-size: 52px;font-weight: 800;line-height: 1;letter-spacing: -.03em;}
+    .timer-bar {
+      width: 320px;max-width: 42vw;height: 10px;border-radius: 999px;background: rgba(255,255,255,0.10);
+      overflow: hidden;margin-top: 10px;border: 1px solid rgba(255,255,255,0.04);
+    }
+    .timer-bar-fill {height: 100%;width: 100%;background: linear-gradient(90deg, var(--yellow), var(--yellow-2));transition: width 0.2s linear;}
+    .status {color: var(--muted);font-size: 14px;margin-top: 12px;line-height: 1.4;white-space: pre-wrap;min-height:40px;}
+    .progress-wrap { margin-top: 12px; }
+    .progress-bar {
+      width: 100%;height: 12px;background: rgba(255,255,255,0.06);border: 1px solid var(--line);
+      border-radius: 999px;overflow: hidden;
+    }
+    .progress-fill {height: 100%;width: 0%;background: linear-gradient(90deg, var(--yellow), var(--yellow-2));transition: width 0.2s ease;}
+    .progress-text {font-size: 13px;color: var(--muted);margin-top: 8px;line-height: 1.4;}
+    .hint {font-size: 12px;color: #9e977f;margin-top: 10px;line-height: 1.45;}
+    .kbd{
+      display:inline-block;min-width:22px;padding:2px 7px;border-radius:8px;background:#23262d;border:1px solid var(--line);
+      color:#f5df8f;font-size:11px;font-weight:800;text-align:center;
+    }
+    @media (max-width: 1000px) {
+      body { flex-direction: column; }
+      .sidebar { width: auto; flex-basis: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .timer { font-size: 40px; }
+      .stage-nav { width: 54px; height: 54px; }
+      .stage { min-height: 56vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="brand-wrap">
+      <div class="brand-badge">D</div>
+      <div>
+        <div class="brand">Dibujandola Toda</div>
+        <div class="brand-sub">Fast drawing practice board</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Paste Pinterest board URL</label>
+      <input id="boardUrl" type="text" placeholder="https://co.pinterest.com/..." />
+
+      <div class="btn-grid">
+        <div>
+          <label>Minutes</label>
+          <input id="minutes" type="number" min="0" value="1" />
+        </div>
+        <div>
+          <label>Seconds</label>
+          <input id="seconds" type="number" min="0" max="59" value="0" />
+        </div>
+      </div>
+
+      <label>Order</label>
+      <select id="mode">
+        <option value="random">Random</option>
+        <option value="sequential">Sequential</option>
+      </select>
+
+      <div class="btn-grid">
+        <button id="loadBtn" class="primary">Load board</button>
+        <button id="startBtn" class="ghost">Start</button>
+        <button id="pauseBtn" class="ghost">Pause</button>
+        <button id="stopBtn" class="ghost">Stop</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="btn-grid">
+        <button id="prevBtn" class="ghost">Previous</button>
+        <button id="nextBtn" class="ghost">Next</button>
+      </div>
+
+      <div class="zoom-row">
+        <button id="zoomOutBtn" class="ghost">-</button>
+        <button id="zoomResetBtn" class="ghost">Reset</button>
+        <button id="zoomInBtn" class="ghost">+</button>
+        <button id="fitBtn" class="ghost">Fit</button>
+      </div>
+
+      <div class="hint">
+        Wheel to zoom. Drag to pan. Keyboard: <span class="kbd">←</span> <span class="kbd">→</span> to switch, <span class="kbd">Space</span> pause/start.
+      </div>
+    </div>
+
+    <div class="section progress-wrap">
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      <div id="progressText" class="progress-text">Idle</div>
+      <div class="status" id="status">Paste a Pinterest board link, then click Load board.</div>
+    </div>
+  </div>
+
+  <div class="viewer">
+    <div class="stage-shell">
+      <div class="stage-top">
+        <div class="meta-pill"><span>Board</span> <span id="meta">0 / 0</span></div>
+        <div class="meta-pill"><span id="slotLabel">Slot 1</span></div>
+      </div>
+
+      <div class="stage" id="stage">
+        <div id="placeholder" class="placeholder">No image loaded yet.</div>
+
+        <button id="stagePrevBtn" class="stage-nav left" aria-label="Previous image" title="Previous image">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+
+        <button id="stageNextBtn" class="stage-nav right" aria-label="Next image" title="Next image">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 6l6 6-6 6"></path>
+          </svg>
+        </button>
+
+        <div id="layerA" class="image-layer active">
+          <img id="imageA" alt="Drawing reference" draggable="false" />
+        </div>
+
+        <div id="layerB" class="image-layer">
+          <img id="imageB" alt="Drawing reference" draggable="false" />
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg viewBox="0 0 80 80" aria-hidden="true">
+            <circle class="timer-ring-bg" cx="40" cy="40" r="32"></circle>
+            <circle id="timerRingProgress" class="timer-ring-progress" cx="40" cy="40" r="32"></circle>
+          </svg>
+          <div id="timerRingCenter" class="timer-ring-center">100%</div>
+        </div>
+
+        <div class="timer-block">
+          <div class="timer" id="countdown">01:00</div>
+          <div class="timer-bar">
+            <div id="timerBarFill" class="timer-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const boardUrlEl = document.getElementById("boardUrl");
+    const minutesEl = document.getElementById("minutes");
+    const secondsEl = document.getElementById("seconds");
+    const modeEl = document.getElementById("mode");
+
+    const loadBtn = document.getElementById("loadBtn");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const stagePrevBtn = document.getElementById("stagePrevBtn");
+    const stageNextBtn = document.getElementById("stageNextBtn");
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const zoomResetBtn = document.getElementById("zoomResetBtn");
+    const fitBtn = document.getElementById("fitBtn");
+
+    const statusEl = document.getElementById("status");
+    const placeholder = document.getElementById("placeholder");
+    const countdownEl = document.getElementById("countdown");
+    const metaEl = document.getElementById("meta");
+    const slotLabelEl = document.getElementById("slotLabel");
+    const progressFillEl = document.getElementById("progressFill");
+    const progressTextEl = document.getElementById("progressText");
+    const stageEl = document.getElementById("stage");
+    const timerBarFillEl = document.getElementById("timerBarFill");
+    const timerRingProgressEl = document.getElementById("timerRingProgress");
+    const timerRingCenterEl = document.getElementById("timerRingCenter");
+
+    const layers = [
+      { layer: document.getElementById("layerA"), img: document.getElementById("imageA") },
+      { layer: document.getElementById("layerB"), img: document.getElementById("imageB") }
+    ];
+
+    let activeLayerIndex = 0;
+    let images = [];
+    let currentIndex = -1;
+    let history = [];
+    let timerTimeout = null;
+    let countdownInterval = null;
+    let endAt = null;
+    let remainingMs = 60000;
+    let paused = false;
+    let running = false;
+    let currentJobId = null;
+    let progressPoller = null;
+    let isTransitioning = false;
+    let pendingIndex = null;
+    let imageToken = 0;
+
+    const transformState = {
+      scale: 1, x: 0, y: 0, dragging: false,
+      dragStartX: 0, dragStartY: 0, startX: 0, startY: 0
+    };
+
+    const RING_RADIUS = 32;
+    const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+    timerRingProgressEl.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
+    timerRingProgressEl.style.strokeDashoffset = `0`;
+
+    function getActiveLayer() { return layers[activeLayerIndex]; }
+    function getInactiveLayer() { return layers[activeLayerIndex === 0 ? 1 : 0]; }
+
+    function applyTransform() {
+      const active = getActiveLayer();
+      active.img.style.transform = `translate(${transformState.x}px, ${transformState.y}px) scale(${transformState.scale})`;
+    }
+    function resetTransform() { transformState.scale = 1; transformState.x = 0; transformState.y = 0; applyTransform(); }
+    function fitTransform() { resetTransform(); }
+    function zoomBy(delta) {
+      const next = Math.max(1, Math.min(5, transformState.scale + delta));
+      transformState.scale = Number(next.toFixed(2));
+      applyTransform();
+    }
+
+    function setStageInteraction() {
+      stageEl.addEventListener("wheel", (event) => {
+        const active = getActiveLayer();
+        if (!active.layer.classList.contains("active")) return;
+        event.preventDefault();
+        zoomBy(event.deltaY < 0 ? 0.15 : -0.15);
+      }, { passive: false });
+
+      stageEl.addEventListener("pointerdown", (event) => {
+        const active = getActiveLayer();
+        if (!active.layer.classList.contains("active")) return;
+        if (event.target !== active.img) return;
+        transformState.dragging = true;
+        transformState.dragStartX = event.clientX;
+        transformState.dragStartY = event.clientY;
+        transformState.startX = transformState.x;
+        transformState.startY = transformState.y;
+        active.img.classList.add("dragging");
+        stageEl.setPointerCapture(event.pointerId);
+      });
+
+      stageEl.addEventListener("pointermove", (event) => {
+        if (!transformState.dragging) return;
+        transformState.x = transformState.startX + (event.clientX - transformState.dragStartX);
+        transformState.y = transformState.startY + (event.clientY - transformState.dragStartY);
+        applyTransform();
+      });
+
+      function endDrag(event) {
+        const active = getActiveLayer();
+        transformState.dragging = false;
+        active.img.classList.remove("dragging");
+        try { stageEl.releasePointerCapture(event.pointerId); } catch (_) {}
+      }
+
+      stageEl.addEventListener("pointerup", endDrag);
+      stageEl.addEventListener("pointercancel", endDrag);
+      stageEl.addEventListener("pointerleave", () => {
+        const active = getActiveLayer();
+        transformState.dragging = false;
+        active.img.classList.remove("dragging");
+      });
+    }
+
+    function getDurationMs() {
+      const minutes = parseInt(minutesEl.value || "0", 10);
+      const seconds = parseInt(secondsEl.value || "0", 10);
+      return Math.max(1000, (minutes * 60 + seconds) * 1000);
+    }
+
+    function updateTimerVisuals(ms) {
+      const duration = Math.max(1000, getDurationMs());
+      const ratio = Math.max(0, Math.min(1, ms / duration));
+      timerBarFillEl.style.width = `${ratio * 100}%`;
+      timerRingProgressEl.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - ratio)}`;
+      timerRingCenterEl.textContent = `${Math.round(ratio * 100)}%`;
+    }
+
+    function formatMs(ms) {
+      const totalSeconds = Math.ceil(ms / 1000);
+      const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const ss = String(totalSeconds % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function updateCountdown() {
+      const ms = running ? Math.max(0, endAt - Date.now()) : remainingMs;
+      countdownEl.textContent = formatMs(ms);
+      updateTimerVisuals(ms);
+    }
+
+    function updateMeta() {
+      metaEl.textContent = images.length ? `${Math.max(0, currentIndex + 1)} / ${images.length}` : "0 / 0";
+      slotLabelEl.textContent = `Slot ${Math.max(1, currentIndex + 1)}`;
+    }
+
+    function setImageInstant(index) {
+      if (!images.length || index < 0 || index >= images.length) return;
+      imageToken += 1;
+      currentIndex = index;
+      activeLayerIndex = 0;
+      layers[1].layer.classList.remove("active");
+      layers[0].img.onload = null;
+      layers[1].img.onload = null;
+      layers[0].img.src = images[index].image;
+      layers[0].img.alt = images[index].title || "Drawing reference";
+      layers[0].layer.classList.add("active");
+      placeholder.hidden = true;
+      resetTransform();
+      updateMeta();
+      isTransitioning = false;
+      pendingIndex = null;
+    }
+
+    function showImage(index) {
+      if (!images.length || index < 0 || index >= images.length) return;
+      if (isTransitioning) { pendingIndex = index; return; }
+      if (index === currentIndex) return;
+
+      isTransitioning = true;
+      pendingIndex = null;
+      imageToken += 1;
+      const token = imageToken;
+
+      const item = images[index];
+      const nextLayer = getInactiveLayer();
+      const currentLayer = getActiveLayer();
+
+      nextLayer.img.onload = () => {
+        if (token !== imageToken) return;
+        currentIndex = index;
+        placeholder.hidden = true;
+        currentLayer.layer.classList.remove("active");
+        nextLayer.layer.classList.add("active");
+        activeLayerIndex = activeLayerIndex === 0 ? 1 : 0;
+        resetTransform();
+        updateMeta();
+        nextLayer.img.onload = null;
+        nextLayer.img.onerror = null;
+        isTransitioning = false;
+
+        if (pendingIndex !== null && pendingIndex !== currentIndex) {
+          const nextPending = pendingIndex;
+          pendingIndex = null;
+          requestAnimationFrame(() => showImage(nextPending));
+        }
+      };
+
+      nextLayer.img.onerror = () => {
+        if (token !== imageToken) return;
+        nextLayer.img.onload = null;
+        nextLayer.img.onerror = null;
+        isTransitioning = false;
+      };
+
+      nextLayer.img.src = item.image;
+      nextLayer.img.alt = item.title || "Drawing reference";
+    }
+
+    function getNextIndex() {
+      if (!images.length) return -1;
+      if (modeEl.value === "sequential") return currentIndex < 0 ? 0 : (currentIndex + 1) % images.length;
+      if (images.length === 1) return 0;
+
+      let next, tries = 0;
+      do {
+        next = Math.floor(Math.random() * images.length);
+        tries += 1;
+      } while (next === currentIndex && tries < 12);
+      return next;
+    }
+
+    function nextImage() {
+      if (!images.length || isTransitioning) return;
+      if (currentIndex >= 0) history.push(currentIndex);
+      const next = getNextIndex();
+      if (next >= 0) showImage(next);
+    }
+
+    function previousImage() {
+      if (!history.length || isTransitioning) return;
+      const prev = history.pop();
+      showImage(prev);
+    }
+
+    function clearTimers() {
+      if (timerTimeout) clearTimeout(timerTimeout);
+      if (countdownInterval) clearInterval(countdownInterval);
+      timerTimeout = null;
+      countdownInterval = null;
+    }
+
+    function scheduleAdvance(ms) {
+      clearTimers();
+      running = true;
+      paused = false;
+      remainingMs = ms;
+      endAt = Date.now() + ms;
+
+      countdownInterval = setInterval(updateCountdown, 200);
+      timerTimeout = setTimeout(() => {
+        if (images.length) {
+          nextImage();
+        }
+        scheduleAdvance(getDurationMs());
+      }, ms);
+
+      updateCountdown();
+    }
+
+    function restartTimer() {
+      remainingMs = getDurationMs();
+      if (running && !paused) scheduleAdvance(remainingMs);
+      else updateCountdown();
+    }
+
+    function resetProgressUi() {
+      progressFillEl.style.width = "0%";
+      progressTextEl.textContent = "Idle";
+    }
+    function stopProgressPolling() {
+      if (progressPoller) { clearInterval(progressPoller); progressPoller = null; }
+    }
+
+    function resetBoardView() {
+      images = [];
+      currentIndex = -1;
+      history = [];
+      isTransitioning = false;
+      pendingIndex = null;
+      imageToken += 1;
+      placeholder.hidden = false;
+      layers.forEach(({ layer, img }, idx) => {
+        if (idx === 0) layer.classList.add("active");
+        else layer.classList.remove("active");
+        img.src = "";
+        img.onload = null;
+        img.onerror = null;
+      });
+      activeLayerIndex = 0;
+      resetTransform();
+      updateMeta();
+      updateCountdown();
+    }
+
+    async function loadBoard() {
+      const boardUrl = boardUrlEl.value.trim();
+      if (!boardUrl) {
+        statusEl.textContent = "Please paste a board URL.";
+        return;
+      }
+
+      statusEl.textContent = "Starting scrape...";
+      progressFillEl.style.width = "0%";
+      progressTextEl.textContent = "Starting...";
+      clearTimers();
+      running = false;
+      paused = false;
+      remainingMs = getDurationMs();
+      resetBoardView();
+
+      try {
+        const startRes = await fetch("/api/start-scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: boardUrl }),
+        });
+
+        const startData = await startRes.json();
+        if (!startRes.ok) throw new Error(startData.error || "Failed to start scrape.");
+
+        currentJobId = startData.jobId;
+        stopProgressPolling();
+
+        progressPoller = setInterval(async () => {
+          try {
+            const statusRes = await fetch(`/api/scrape-status/${currentJobId}`);
+            const job = await statusRes.json();
+            if (!statusRes.ok) throw new Error(job.error || "Failed to fetch progress.");
+
+            progressFillEl.style.width = `${job.progress || 0}%`;
+            progressTextEl.textContent = `${job.message} (${job.processedPins || 0}/${job.totalPins || 0})`;
+            statusEl.textContent = job.message;
+
+            if (job.status === "done") {
+              stopProgressPolling();
+              images = job.items || [];
+              history = [];
+              currentIndex = -1;
+              remainingMs = getDurationMs();
+
+              if (!images.length) {
+                statusEl.textContent = "Scrape finished, but no images were returned.";
+                return;
+              }
+
+              setImageInstant(0);
+              updateCountdown();
+              statusEl.textContent = `Loaded ${images.length} images. Reset to slot 1.`;
+              progressTextEl.textContent = `Done (${images.length} images)`;
+            }
+
+            if (job.status === "error") {
+              stopProgressPolling();
+              throw new Error(job.error || "Scrape failed.");
+            }
+          } catch (err) {
+            stopProgressPolling();
+            statusEl.textContent = `Error: ${err.message}`;
+            progressTextEl.textContent = "Error";
+          }
+        }, 1000);
+      } catch (error) {
+        statusEl.textContent = `Error: ${error.message}`;
+        progressTextEl.textContent = "Error";
+      }
+    }
+
+    function startSession() {
+      if (!images.length) {
+        statusEl.textContent = "Load a board first.";
+        return;
+      }
+      if (paused) {
+        scheduleAdvance(remainingMs);
+        return;
+      }
+      if (currentIndex < 0) setImageInstant(0);
+      scheduleAdvance(getDurationMs());
+    }
+
+    function pauseSession() {
+      if (!running) return;
+      remainingMs = Math.max(0, endAt - Date.now());
+      clearTimers();
+      running = false;
+      paused = true;
+      updateCountdown();
+    }
+
+    function stopSession() {
+      clearTimers();
+      running = false;
+      paused = false;
+      remainingMs = getDurationMs();
+      updateCountdown();
+    }
+
+    function handleStageNext() {
+      if (!images.length) return;
+      nextImage();
+      restartTimer();
+    }
+
+    function handleStagePrev() {
+      if (!images.length) return;
+      previousImage();
+      restartTimer();
+    }
+
+    function setupKeyboard() {
+      window.addEventListener("keydown", (event) => {
+        if (event.target && ["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) return;
+
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          handleStageNext();
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          handleStagePrev();
+        } else if (event.code === "Space") {
+          event.preventDefault();
+          if (running) pauseSession();
+          else startSession();
+        }
+      });
+    }
+
+    loadBtn.addEventListener("click", loadBoard);
+    startBtn.addEventListener("click", startSession);
+    pauseBtn.addEventListener("click", pauseSession);
+    nextBtn.addEventListener("click", handleStageNext);
+    prevBtn.addEventListener("click", handleStagePrev);
+    stopBtn.addEventListener("click", stopSession);
+    stageNextBtn.addEventListener("click", handleStageNext);
+    stagePrevBtn.addEventListener("click", handleStagePrev);
+    zoomInBtn.addEventListener("click", () => zoomBy(0.2));
+    zoomOutBtn.addEventListener("click", () => zoomBy(-0.2));
+    zoomResetBtn.addEventListener("click", resetTransform);
+    fitBtn.addEventListener("click", fitTransform);
+    [minutesEl, secondsEl].forEach(el => el.addEventListener("change", restartTimer));
+
+    countdownEl.textContent = formatMs(remainingMs);
+    resetProgressUi();
+    updateMeta();
+    updateCountdown();
+    setStageInteraction();
+    setupKeyboard();
+  </script>
+</body>
+</html>
